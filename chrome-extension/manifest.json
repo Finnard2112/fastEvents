@@ -1,0 +1,10 @@
+{
+    "name": "Fast Events",
+    "description": "Create events from screenshots or text",
+    "version": "1.0",
+    "manifest_version": 3,
+    "action": {
+      "default_popup": "hello.html",
+      "default_icon": "icon.png"
+    }
+  }
