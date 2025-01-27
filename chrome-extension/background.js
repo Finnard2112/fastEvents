@@ -1,13 +1,8 @@
 // background.js
 
-let isContentScriptInjected = {};
 
 // Listener for extension icon click
 chrome.action.onClicked.addListener((tab) => {
-  if (isContentScriptInjected[tab.id]) {
-    console.log('Content script already injected in this tab.');
-    return;
-  }
 
   // Inject html2canvas.min.js first, then content.js
   chrome.scripting.executeScript({
@@ -29,7 +24,6 @@ chrome.action.onClicked.addListener((tab) => {
         console.error(`Failed to inject content.js: ${chrome.runtime.lastError.message}`);
       } else {
         console.log('content.js injected successfully.');
-        isContentScriptInjected[tab.id] = true;
 
         // Send a message to content.js to start selection
         chrome.tabs.sendMessage(tab.id, { action: 'startSelection' });
@@ -55,17 +49,5 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }, (window) => {
       console.log('Confirmation popup opened.');
     });
-  }
-});
-
-// Reset the injection flag when the tab is removed
-chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
-  delete isContentScriptInjected[tabId];
-});
-
-// Reset the injection flag when the tab is updated (e.g., reloaded)
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.status === 'loading') {
-    delete isContentScriptInjected[tabId];
   }
 });

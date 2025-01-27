@@ -75,42 +75,49 @@
       selectionBox.style.top = `${top}px`;
       selectionBox.style.width = `${width}px`;
       selectionBox.style.height = `${height}px`;
+
     }
   
     function finalizeSelectionArea(e) {
+
       const overlay = document.getElementById('screenshot-overlay');
       overlay.removeEventListener('mousemove', resizeSelectionArea);
       overlay.removeEventListener('mouseup', finalizeSelectionArea);
-  
-      // Remove the overlay after selection
-      document.body.removeChild(overlay);
-  
-      // Calculate the selected region
+      
       const rect = selectionBox.getBoundingClientRect();
+      console.log("finalize3", rect)
+      
+      // Now, remove the overlay
+      document.body.removeChild(overlay);
+      
       const options = {
-        x: rect.left + window.scrollX,
-        y: rect.top + window.scrollY,
-        width: rect.width,
-        height: rect.height
+          x: rect.left + window.scrollX,
+          y: rect.top + window.scrollY,
+          width: rect.width,
+          height: rect.height
       };
+  
+      console.log('Selected region options:', options);
   
       // Use html2canvas to capture the selected region
       html2canvas(document.body, {
-        x: Math.round(options.x),
-        y: Math.round(options.y),
-        width: Math.round(options.width),
-        height: Math.round(options.height),
-        windowWidth: document.documentElement.scrollWidth,
-        windowHeight: document.documentElement.scrollHeight
+          x: Math.round(options.x),
+          y: Math.round(options.y),
+          width: Math.round(options.width),
+          height: Math.round(options.height),
+          windowWidth: document.documentElement.scrollWidth,
+          windowHeight: document.documentElement.scrollHeight
       }).then(canvas => {
-        // Convert the canvas to a data URL
-        const dataURL = canvas.toDataURL('image/png');
+          // Convert the canvas to a data URL
+          const dataURL = canvas.toDataURL('image/png');
+          console.log('Data URL generated:', dataURL); // Debug log
   
-        // Send the screenshot data to the background script
-        chrome.runtime.sendMessage({ action: 'screenshotCaptured', dataURL: dataURL });
+          // Send the screenshot data to the background script
+          chrome.runtime.sendMessage({ action: 'screenshotCaptured', dataURL: dataURL });
       }).catch(err => {
-        console.error('Error capturing screenshot:', err);
+          console.error('Error capturing screenshot:', err);
       });
-    }
+  }
+  
   })();
   
