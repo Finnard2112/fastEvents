@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Region Screenshot Capture",
-  "version": "1.2",
-  "description": "Capture screenshots of specific regions on a webpage.",
+  "name": "Fast Events",
+  "version": "1.0",
+  "description": "Create calendar events from text or image",
   "permissions": [
     "activeTab",
     "scripting",
@@ -22,11 +22,5 @@
     "16": "icons/icon-16.png",
     "48": "icons/icon-48.png",
     "128": "icons/icon-128.png"
-  },
-  "web_accessible_resources": [{
-    "resources": [
-      "public/font/ProximaNova-Reg-webfont.woff2"
-    ],
-    "matches": ["<all_urls>"]
-  }]
+  }
 }
