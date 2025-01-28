@@ -1,16 +1,10 @@
 from PIL import Image
 import pytesseract
 import nltk
-#nltk.download('punkt_tab')
-#nltk.download('averaged_perceptron_tagger_eng')
+
 
 # macOS Tesseract path (Homebrew default)
 pytesseract.pytesseract.tesseract_cmd = '/opt/homebrew/bin/tesseract'
-
-def extract_text(image_path):
-    img = Image.open(image_path)
-    text = pytesseract.image_to_string(img)
-    return text.strip()
 
 from datetime import datetime, timedelta
 import re
@@ -129,38 +123,9 @@ def extract_dates(text):
     print(unique_matches, parsed_dates)
     return unique_matches, parsed_dates
 
-from nltk import pos_tag, word_tokenize
 
-def extract_event(text, date_phrases):
-    # Remove detected date phrases from the text
-    for phrase in date_phrases:
-        text = text.replace(phrase, '')
-    
-    # Tokenize and tag parts of speech
-    tokens = word_tokenize(text)
-    tagged = pos_tag(tokens)
-    
-    # Identify verbs/nouns as event keywords (e.g., "meet", "party")
-    event_keywords = [
-        word for word, tag in tagged
-        if tag.startswith('VB') or tag.startswith('NN')  # Verbs or nouns
-    ]
-    return ' '.join(event_keywords).strip()
 
-if __name__ == "__main__":
-    image_path = "/Users/dzui_/fastEvents/duy/images/Screenshot 0007-01-25 at 14.51.22.png"
-    
-    # Step 1: Extract text from image
-    text = extract_text(image_path)
-    print(f"Extracted Text: {text}")
-    
-    # Step 2: Detect dates
-    date_phrases, parsed_dates = extract_dates(text)
-    date = parsed_dates[0] if parsed_dates else None
-    
-    # Step 3: Extract event
-    event = extract_event(text, date_phrases)
-    
-    print(f"\nEvent: {event}")
-    print(f"Date: {date}")
-
+text = "Submit the report in two days from now."
+matches, parsed_dates = extract_dates(text)
+print("Matches:", matches)
+print("Parsed Dates:", parsed_dates)
