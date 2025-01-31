@@ -12,12 +12,12 @@ def extract_text(image_path):
     text = pytesseract.image_to_string(img)
     return text.strip()
 
-from datetime import datetime, timedelta
+"""from datetime import datetime, timedelta
 import re
 from dateutil import parser
 
 def extract_dates(text):
-    """Extract dates using regex and custom logic for relative phrases."""
+    #Extract dates using regex and custom logic for relative phrases.
     today = datetime.now()
     
     # Regex patterns to capture date phrases
@@ -146,14 +146,30 @@ def extract_event(text, date_phrases):
         if tag.startswith('VB') or tag.startswith('NN')  # Verbs or nouns
     ]
     return ' '.join(event_keywords).strip()
+"""
+
+#Gen AI Trial
+import google.generativeai as genai
+
+def generate(extracted_text):
+        
+    #Duy's API Key
+    genai.configure(api_key="AIzaSyBs9rnjsdUNMqMICOI2V9oqSIT-TG-IClw")
+    model = genai.GenerativeModel("gemini-1.5-flash")
+    text = extracted_text
+    #Returns empty array if nothing is found (yet to be tested)
+    response = model.generate_content("Extract any event details from the provided text string that is extracted via OCR from an image of text messages and return them in the following JSON format: '[{ 'Event': 'Description of the event', 'Time': 'HH:MM AM/PM or HH:MM', 'Date': 'MM/DD/YYYY' }]`. Identify events as any activity or occasion tied to a specific time and/or date, make sure the date is correct (for example, 'tomorrow' should give the date of tomorrow). Extract clear event descriptions —e.g., 'Meeting with Alex')— standardize time formats to either 12-hour or 24-hour, and date formats to 'MM/DD/YYYY.' If time or date is missing, leave the field blank. Ignore unrelated or irrelevant text, and ensure multiple events are output as separate entries in the JSON array. If no events are found, return an empty array (`[]`). Maintain consistent formatting and provide complete details whenever possible. Here is the text: " + text)
+    print("Printing", response.text)
 
 if __name__ == "__main__":
-    image_path = "/Users/dzui_/fastEvents/duy/images/Screenshot 0007-01-25 at 14.51.22.png"
+    image_path = "/Users/dzui_/fastEvents/duy/images/Test multi.png"
     
     # Step 1: Extract text from image
     text = extract_text(image_path)
     print(f"Extracted Text: {text}")
+    generate(text)
     
+    """
     # Step 2: Detect dates
     date_phrases, parsed_dates = extract_dates(text)
     date = parsed_dates[0] if parsed_dates else None
@@ -163,4 +179,4 @@ if __name__ == "__main__":
     
     print(f"\nEvent: {event}")
     print(f"Date: {date}")
-
+    """ 
