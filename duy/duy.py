@@ -1,19 +1,87 @@
-from PIL import Image
-import pytesseract
-import nltk
+
+#import nltk
 #nltk.download('punkt_tab')
 #nltk.download('averaged_perceptron_tagger_eng')
 
 # macOS Tesseract path (Homebrew default)
-pytesseract.pytesseract.tesseract_cmd = '/opt/homebrew/bin/tesseract'
+#pytesseract.pytesseract.tesseract_cmd = '/opt/homebrew/bin/tesseract'
+
+import google.generativeai as genai
+from datetime import datetime, timedelta
+
+import re
+import json
+
+from PIL import Image
+import pytesseract
+
+# Idea
+#Returns empty array if nothing is found (yet to be tested)
+    #Add Default times for events, like 9am for morning & normal, 12 for noon, 3 afternoon, 8 night. Make adjustable setting on extension for user response = model.generate_content("Extract any event details from the provided text string that is extracted via OCR from an image of text messages and return them in the following JSON format: '[{ 'Event': 'Description of the event', 'Time': 'HH:MM AM/PM or HH:MM', 'Date': 'MM/DD/YYYY' }]`. Identify events as any activity or occasion tied to a specific time and/or date, make sure the date is correct (for example, 'tomorrow' should give the date of tomorrow). Today's date is "+ str(today)+ ". Extract clear event descriptions —e.g., 'Meeting with Alex')— standardize time formats to either 12-hour or 24-hour, and date formats to 'MM/DD/YYYY.' If time or date is missing, leave the field blank. Ignore unrelated or irrelevant text, and ensure multiple events are output as separate entries in the JSON array. If no events are found, return an empty array (`[]`). Maintain consistent formatting and provide complete details whenever possible. Here is the text: " + text)
+    # IDEA for seperating and filtering each. Ask it to include a key in between each important piece of data: "Go to x~~4am~~1/31/2025"
+    
 
 def extract_text(image_path):
     img = Image.open(image_path)
     text = pytesseract.image_to_string(img)
     return text.strip()
 
-"""from datetime import datetime, timedelta
-import re
+def generate(extracted_text):
+    today = datetime.now()
+
+    genai.configure(api_key="")
+    model = genai.GenerativeModel("gemini-1.5-flash")
+    text = extracted_text
+
+    response = model.generate_content(f"""Extract any event details from the provided text string that is extracted via OCR from an image of text messages; order them from soonest to latest in terms of date and time, then return them in the following JSON format: '[{{ "Event": "Description of the event", "Time": "HH:MM AM/PM or HH:MM", "Date": "MM/DD/YYYY" }}]`. Identify events as any activity or occasion tied to a specific time and/or date, make sure the date is correct (for example, 'tomorrow' should give the date of tomorrow). Today's date is {today}. Extract clear event descriptions —e.g., 'Meeting with Alex')— standardize time formats to either 12-hour or 24-hour, and date formats to 'MM/DD/YYYY.' If time or date is missing, leave the field blank. Ignore unrelated or irrelevant text, and ensure multiple events are output as separate entries in the JSON array. If no events are found, return an empty array (`[]`). Maintain consistent formatting and provide complete details whenever possible. Here is the text: {text}""")
+
+    print("Gemini Response:", response.text)
+
+    # Extract text from the response
+    try:
+        json_string = response.text.replace("```json", "").replace("```", "").strip()
+
+        match = re.match(r"^(\[.*\])", json_string, re.DOTALL)
+        if match:
+            json_string = match.group(1)
+        else:
+            print("Warning: Could not find valid JSON in response.")
+            print("Raw response text:", response.text)
+            return []
+
+        events = json.loads(json_string)
+
+        event_list = []
+        for event in events:
+            event_list.append(event)
+
+        return event_list
+
+    except json.JSONDecodeError as e:
+        print(f"Error decoding JSON: {e}")
+        print("Raw response text:", response.text)
+        return []  # Return empty list in case of error
+    except Exception as e: # Catching any other potential exceptions
+        print(f"An unexpected error occurred: {e}")
+        print("Raw response text:", response.text)
+        return []
+
+
+if __name__ == "__main__":
+    image_path = "/Users/dzui_/fastEvents/duy/images/Screenshot 0007-01-25 at 14.39.09.png" # Replace with current image path
+    text = extract_text(image_path)
+    print(f"Extracted Text: {text}")
+    events = generate(text)
+
+    if events:
+        for i, event in enumerate(events):
+            print(f"\nEvent {i+1}:")
+            for key, value in event.items():
+                print(f"  {key}: {value}")
+    else:
+        print("No events found or JSON parsing error.")
+
+"""
 from dateutil import parser
 
 def extract_dates(text):
@@ -147,29 +215,36 @@ def extract_event(text, date_phrases):
     ]
     return ' '.join(event_keywords).strip()
 """
+#^^^Parsing
 
 #Gen AI Trial
-import google.generativeai as genai
 
-def generate(extracted_text):
-        
+"""def generate(extracted_text):
+    today = datetime.now()
+
     #Duy's API Key
-    genai.configure(api_key="AIzaSyBs9rnjsdUNMqMICOI2V9oqSIT-TG-IClw")
+    genai.configure(api_key="")
     model = genai.GenerativeModel("gemini-1.5-flash")
     text = extracted_text
+
     #Returns empty array if nothing is found (yet to be tested)
-    response = model.generate_content("Extract any event details from the provided text string that is extracted via OCR from an image of text messages and return them in the following JSON format: '[{ 'Event': 'Description of the event', 'Time': 'HH:MM AM/PM or HH:MM', 'Date': 'MM/DD/YYYY' }]`. Identify events as any activity or occasion tied to a specific time and/or date, make sure the date is correct (for example, 'tomorrow' should give the date of tomorrow). Extract clear event descriptions —e.g., 'Meeting with Alex')— standardize time formats to either 12-hour or 24-hour, and date formats to 'MM/DD/YYYY.' If time or date is missing, leave the field blank. Ignore unrelated or irrelevant text, and ensure multiple events are output as separate entries in the JSON array. If no events are found, return an empty array (`[]`). Maintain consistent formatting and provide complete details whenever possible. Here is the text: " + text)
+    #Add Default times for events, like 9am for morning & normal, 12 for noon, 3 afternoon, 8 night. Make adjustable setting on extension for user
+    response = model.generate_content("Extract any event details from the provided text string that is extracted via OCR from an image of text messages and return them in the following JSON format: '[{ 'Event': 'Description of the event', 'Time': 'HH:MM AM/PM or HH:MM', 'Date': 'MM/DD/YYYY' }]`. Identify events as any activity or occasion tied to a specific time and/or date, make sure the date is correct (for example, 'tomorrow' should give the date of tomorrow). Today's date is "+ str(today)+ ". Extract clear event descriptions —e.g., 'Meeting with Alex')— standardize time formats to either 12-hour or 24-hour, and date formats to 'MM/DD/YYYY.' If time or date is missing, leave the field blank. Ignore unrelated or irrelevant text, and ensure multiple events are output as separate entries in the JSON array. If no events are found, return an empty array (`[]`). Maintain consistent formatting and provide complete details whenever possible. Here is the text: " + text)
+    # IDEA for seperating and filtering each. Ask it to include a key in between each important piece of data: "Go to x~~4am~~1/31/2025"
     print("Printing", response.text)
 
-if __name__ == "__main__":
+
+    
+    
+    if __name__ == "__main__":
     image_path = "/Users/dzui_/fastEvents/duy/images/Test multi.png"
     
-    # Step 1: Extract text from image
+    #Extract text from image
     text = extract_text(image_path)
     print(f"Extracted Text: {text}")
     generate(text)
+    #-------
     
-    """
     # Step 2: Detect dates
     date_phrases, parsed_dates = extract_dates(text)
     date = parsed_dates[0] if parsed_dates else None
@@ -179,4 +254,4 @@ if __name__ == "__main__":
     
     print(f"\nEvent: {event}")
     print(f"Date: {date}")
-    """ 
+    """
