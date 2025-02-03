@@ -34,8 +34,8 @@ SCOPES = [
     'https://www.googleapis.com/auth/calendar.events',
     'https://www.googleapis.com/auth/calendar'  # For calendar sharing
 ]
-CREDENTIALS_FILE = '/Users/dzui_/fastEvents/duy/docs/credentials.json'  # Path to your credentials file (downloaded from Google Cloud Console)
-TOKEN_FILE = '/Users/dzui_/fastEvents/duy/docs/token.json' # Path to store the token
+CREDENTIALS_FILE = '/Users/dzui_/fastEvents/docs/credentials.json'  # Path to your credentials file (downloaded from Google Cloud Console)
+TOKEN_FILE = '/Users/dzui_/fastEvents/docs/token.json' # Path to store the token
 
 def extract_text_from_image(image_path):
     genai.configure(api_key="AIzaSyBs9rnjsdUNMqMICOI2V9oqSIT-TG-IClw")
