@@ -2,26 +2,21 @@
   "manifest_version": 3,
   "name": "Fast Events",
   "version": "1.0",
-  "description": "Create calendar events from text or image",
   "permissions": [
-    "activeTab",
-    "scripting",
+    "identity",
     "storage"
   ],
+  "oauth2": {
+    "client_id": "YOUR_GOOGLE_CLOUD_CLIENT_ID.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/calendar.events"
+    ]
+  },
   "action": {
-    "default_icon": {
-      "16": "icons/icon-16.png",
-      "48": "icons/icon-48.png",
-      "128": "icons/icon-128.png"
-    }
+    "default_popup": "popup/popup.html",
+    "default_icon": "icons/icon128.png"
   },
   "background": {
-    "service_worker": "background.js",
-    "type": "module"
-  },
-  "icons": {
-    "16": "icons/icon-16.png",
-    "48": "icons/icon-48.png",
-    "128": "icons/icon-128.png"
+    "service_worker": "background.js"
   }
 }

@@ -49,6 +49,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return;
       }
 
+
+      // Fix From here
       // Send the prompt (with the image data) to ChatGPT and return its response
       sendToChatGPT(screenshotData)
         .then((chatGPTResponse) => {

@@ -1,7 +1,8 @@
 # Idea
 #Returns empty array if nothing is found (yet to be tested)
     #Add Default times for events, like 9am for morning & normal, 12 for noon, 3 afternoon, 8 night. Make adjustable setting on extension for user response = model.generate_content("Extract any event details from the provided text string that is extracted via OCR from an image of text messages and return them in the following JSON format: '[{ 'Event': 'Description of the event', 'Time': 'HH:MM AM/PM or HH:MM', 'Date': 'MM/DD/YYYY' }]`. Identify events as any activity or occasion tied to a specific time and/or date, make sure the date is correct (for example, 'tomorrow' should give the date of tomorrow). Today's date is "+ str(today)+ ". Extract clear event descriptions —e.g., 'Meeting with Alex')— standardize time formats to either 12-hour or 24-hour, and date formats to 'MM/DD/YYYY.' If time or date is missing, leave the field blank. Ignore unrelated or irrelevant text, and ensure multiple events are output as separate entries in the JSON array. If no events are found, return an empty array (`[]`). Maintain consistent formatting and provide complete details whenever possible. Here is the text: " + text)
-    # IDEA for seperating and filtering each. Ask it to include a key in between each important piece of data: "Go to x~~4am~~1/31/2025"
+#Or for deault time, ask gemini to take a best guess on what time it is IF IT IS NOT PROVIDED    
+# IDEA for seperating and filtering each. Ask it to include a key in between each important piece of data: "Go to x~~4am~~1/31/2025"
 #Let user set which calendar they want into, find x way to deal with errors
 
 
@@ -38,7 +39,7 @@ CREDENTIALS_FILE = '/Users/dzui_/fastEvents/docs/credentials.json'  # Path to yo
 TOKEN_FILE = '/Users/dzui_/fastEvents/docs/token.json' # Path to store the token
 
 def extract_text_from_image(image_path):
-    genai.configure(api_key="")
+    genai.configure(api_key="AIzaSyBs9rnjsdUNMqMICOI2V9oqSIT-TG-IClw")
     model = genai.GenerativeModel("gemini-1.5-flash")
 
     try:
@@ -68,7 +69,7 @@ def extract_text_from_image(image_path):
 def generate(extracted_text):
     today = datetime.now()
 
-    genai.configure(api_key="")
+    genai.configure(api_key="AIzaSyBs9rnjsdUNMqMICOI2V9oqSIT-TG-IClw")
     model = genai.GenerativeModel("gemini-1.5-flash")
     text = extracted_text
 
