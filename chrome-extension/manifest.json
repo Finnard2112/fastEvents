@@ -8,6 +8,9 @@
     "scripting",
     "storage"
   ],
+  "host_permissions": [
+  "<all_urls>"
+  ],
   "action": {
     "default_icon": {
       "16": "icons/icon-16.png",
@@ -27,8 +30,8 @@
   "commands": {
     "_execute_action": {
       "suggested_key": {
-        "default": "Ctrl+Q",
-        "mac": "Command+Q"
+        "default": "Ctrl+Shift+Q",
+        "mac": "Command+Shift+Q"
       }
     }
   }
