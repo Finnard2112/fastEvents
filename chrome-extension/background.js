@@ -42,30 +42,41 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'processScreenshot') {
     // Retrieve the screenshot from chrome.storage.local
-    chrome.storage.local.get('screenshot', (data) => {
+    chrome.storage.local.get('screenshot', async (data) => {
       const screenshotData = data.screenshot;
       if (!screenshotData) {
         sendResponse({ status: 'error', message: 'No screenshot found' });
         return;
       }
 
-
-      // Fix From here
-      // Send the prompt (with the image data) to ChatGPT and return its response
-      sendToChatGPT(screenshotData)
-        .then((chatGPTResponse) => {
-          console.log('ChatGPT response:', chatGPTResponse);
-          sendResponse({ status: 'success', data: chatGPTResponse });
-        })
-        .catch((error) => {
-          console.error('Error processing screenshot:', error);
-          sendResponse({ status: 'error', message: error.message });
+      try {
+        // Process image with Gemini
+        const events = await processImageWithGemini(screenshotData);
+        
+        // Add events to Google Calendar
+        await addToGoogleCalendar(events);
+        
+        // Send success response
+        sendResponse({ 
+          status: 'success', 
+          data: {
+            message: 'Events created successfully',
+            events: events
+          }
         });
+      } catch (error) {
+        console.error('Error processing screenshot:', error);
+        sendResponse({ 
+          status: 'error', 
+          message: error.message || 'Failed to process image'
+        });
+      }
     });
-    // Return true to indicate that we will send a response asynchronously.
+    
+    // Return true to indicate async response
     return true;
   } else if (request.action === 'cancelScreenshot') {
-    // Clear the stored screenshot and return a cancellation status
+    // Clear the stored screenshot
     chrome.storage.local.remove('screenshot', () => {
       sendResponse({ status: 'cancelled' });
     });
@@ -73,65 +84,145 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
-async function sendToChatGPT(screenshotData) {
-  const apiKey = ''; // Replace with your actual API key
-  const url = 'https://api.openai.com/v1/chat/completions';
-  const today = new Date().toLocaleDateString('en-US'); 
-  const promptContent = `Extract any event details from the provided text string that is extracted via OCR from an image of text messages; order them from soonest to latest in terms of date and time, then return them in the following JSON format: '[{{ "Event": "Description of the event", "Time": "HH:MM AM/PM or HH:MM", "Date": "MM/DD/YYYY" }}]'. Identify events as any activity or occasion tied to a specific time and/or date, make sure the date is correct (for example, 'tomorrow' should give the date of tomorrow). Today's date is ${today}. Extract clear event descriptions —e.g., 'Meeting with Alex'— standardize time formats to either 12-hour or 24-hour, and date formats to 'MM/DD/YYYY.' If time or date is missing, leave the field blank. Ignore unrelated or irrelevant text, and ensure multiple events are output as separate entries in the JSON array. If no events are found, return an empty array (\`[]\`). Maintain consistent formatting and provide complete details whenever possible.`;
-
-  const payload = {
-    model: 'gpt-4o-mini',
-    messages: [
-      {
-        role: 'user',
-        content: [
-          {
-            type: 'text',
-            text: promptContent
-          },
-          {
-            type: 'image_url',
-            image_url: {
-              url: screenshotData
-            }
-          }
-        ]
-      }
-    ],
-    max_tokens: 300
-  };
+// Gemini image processing function
+async function processImageWithGemini(base64Image) {
+  const GEMINI_API_KEY = 'YOUR_API_KEY'; // Replace with actual key
+  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 
   try {
-    const response = await fetch(url, {
+    const response = await fetch(`${url}?key=${GEMINI_API_KEY}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify(payload)
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            {
+              inline_data: {
+                mime_type: "image/jpeg",
+                data: base64Image.split(',')[1] // Remove data URL prefix
+              }
+            },
+            {
+              text: "Extract event details from image. Return JSON format: [{ 'Event': '...', 'Date': 'MM/DD/YYYY', 'Time': 'HH:MM AM/PM' }]"
+            }
+          ]
+        }]
+      })
     });
 
-    // Log the raw response status and headers
-    console.log('Response status:', response.status);
-    console.log('Response headers:', response.headers);
-
-    // Read the raw text of the response for debugging
-    const rawResponseText = await response.text();
-    console.log('Raw response text:', rawResponseText);
-
-    // Try to parse JSON from the response text
-    let data;
-    try {
-      data = JSON.parse(rawResponseText);
-    } catch (jsonError) {
-      console.error('Error parsing JSON:', jsonError);
-      throw new Error('Failed to parse JSON from response');
-    }
-
-    console.log('Parsed ChatGPT response:', data);
-    return data;
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    
+    const data = await response.json();
+    const jsonString = data.candidates[0].content.parts[0].text
+      .replace(/```json/g, '')
+      .replace(/```/g, '')
+      .trim();
+    
+    return JSON.parse(jsonString);
   } catch (error) {
-    console.error('Error fetching chat completions:', error);
-    throw error;
+    console.error('Gemini API Error:', error);
+    throw new Error('Failed to process image with Gemini');
   }
 }
+
+function parseDateTime(dateStr, timeStr) {
+  let date;
+
+  // Parse Date (MM/DD/YYYY format or default to tomorrow)
+  if (dateStr && dateStr.trim() !== '') {
+    const [month, day, year] = dateStr.split('/').map(Number);
+    date = new Date(year, month - 1, day); // Months are 0-based in JS
+  } else {
+    const today = new Date();
+    date = new Date(today);
+    date.setDate(today.getDate() + 1); // Default to tomorrow
+  }
+
+  // Parse Time (HH:MM AM/PM or HH:MM format)
+  let hours = 9; // Default to 9 AM
+  let minutes = 0;
+  if (timeStr && timeStr.trim() !== '') {
+    const cleanTime = timeStr.toLowerCase().trim();
+    const [timePart, period] = cleanTime.split(/(am|pm)/);
+    const [h, m] = timePart.split(':').map(Number);
+
+    hours = h || 0;
+    minutes = m || 0;
+
+    // Convert to 24-hour format
+    if (period === 'pm' && hours < 12) hours += 12;
+    if (period === 'am' && hours === 12) hours = 0;
+  }
+
+  // Set time components
+  date.setHours(hours, minutes, 0, 0);
+  
+  return date;
+}
+
+// Helper to format date for Google Calendar API
+function formatCalendarDateTime(date) {
+  const pad = n => n.toString().padStart(2, '0');
+  return {
+    dateTime: `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T` +
+              `${pad(date.getHours())}:${pad(date.getMinutes())}:00`,
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+  };
+}
+
+// Usage in addToGoogleCalendar
+async function addToGoogleCalendar(events) {
+  return new Promise((resolve, reject) => {
+    chrome.identity.getAuthToken({ interactive: true }, async (token) => {
+      try {
+        for (const event of events) {
+          const startDate = parseDateTime(event.Date, event.Time);
+          const endDate = new Date(startDate.getTime() + 3600000); // +1 hour
+
+          const eventBody = {
+            summary: event.Event,
+            start: formatCalendarDateTime(startDate),
+            end: formatCalendarDateTime(endDate),
+            visibility: "public"
+          };
+
+          const response = await fetch(
+            'https://www.googleapis.com/calendar/v3/calendars/primary/events',
+            {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(eventBody)
+            }
+          );
+
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error.message);
+          }
+        }
+        resolve();
+      } catch (error) {
+        reject(error);
+      }
+    });
+  });
+}
+
+// Main workflow
+document.getElementById('processBtn').addEventListener('click', async () => {
+  const fileInput = document.getElementById('imageInput');
+  const file = fileInput.files[0];
+  
+  // Convert image to base64
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const base64Image = e.target.result;
+    const events = await processImageWithGemini(base64Image);
+    await addToGoogleCalendar(events);
+    alert('Events added to Google Calendar!');
+  };
+  reader.readAsDataURL(file);
+}); 
