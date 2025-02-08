@@ -1,6 +1,6 @@
 // background.js
 
-import Tesseract from './lib/tesseract.esm.min.js';
+//import Tesseract from './lib/tesseract.esm.min.js';
 
 // Listener for extension icon click
 chrome.action.onClicked.addListener((tab) => {
@@ -211,7 +211,7 @@ async function addToGoogleCalendar(events) {
   });
 }
 
-// Main workflow
+/* // Main workflow
 document.getElementById('processBtn').addEventListener('click', async () => {
   const fileInput = document.getElementById('imageInput');
   const file = fileInput.files[0];
@@ -225,4 +225,4 @@ document.getElementById('processBtn').addEventListener('click', async () => {
     alert('Events added to Google Calendar!');
   };
   reader.readAsDataURL(file);
-}); 
+});  */
