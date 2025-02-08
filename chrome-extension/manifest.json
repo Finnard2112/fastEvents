@@ -10,7 +10,7 @@
     "identity"
   ],
   "oauth2": {
-    "client_id": "178586951197-spg9qap2s7b3glplrfc77cohgu1eapk8.apps.googleusercontent.com.apps.googleusercontent.com",
+    "client_id": "178586951197-spg9qap2s7b3glplrfc77cohgu1eapk8.apps.googleusercontent.com",
     "scopes": [
       "https://www.googleapis.com/auth/calendar.events"
     ]

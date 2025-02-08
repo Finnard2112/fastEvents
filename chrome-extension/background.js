@@ -1,7 +1,5 @@
 // background.js
 
-import Tesseract from './lib/tesseract.esm.min.js';
-
 // Listener for extension icon click
 chrome.action.onClicked.addListener((tab) => {
   chrome.scripting.executeScript({
@@ -44,6 +42,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     // Retrieve the screenshot from chrome.storage.local
     chrome.storage.local.get('screenshot', async (data) => {
       const screenshotData = data.screenshot;
+      console.log('Data URL generated:', screenshotData); // Debug log
       if (!screenshotData) {
         sendResponse({ status: 'error', message: 'No screenshot found' });
         return;
@@ -52,10 +51,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       try {
         // Process image with Gemini
         const events = await processImageWithGemini(screenshotData);
-        
-        // Add events to Google Calendar
-        await addToGoogleCalendar(events);
-        
+
+        res = await addToGoogleCalendar(events);
+
         // Send success response
         sendResponse({ 
           status: 'success', 
@@ -86,8 +84,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 // Gemini image processing function
 async function processImageWithGemini(base64Image) {
-  const GEMINI_API_KEY = 'YOUR_API_KEY'; // Replace with actual key
-  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+  const GEMINI_API_KEY = ''; // Replace with actual key
+  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite-preview-02-05:generateContent';
 
   try {
     const response = await fetch(`${url}?key=${GEMINI_API_KEY}`, {
@@ -98,8 +96,8 @@ async function processImageWithGemini(base64Image) {
           parts: [
             {
               inline_data: {
-                mime_type: "image/jpeg",
-                data: base64Image.split(',')[1] // Remove data URL prefix
+                mime_type: "image/png",
+                data: base64Image.split(',')[1] // Remove data URL prefiximageDataUrl
               }
             },
             {
@@ -124,6 +122,48 @@ async function processImageWithGemini(base64Image) {
     throw new Error('Failed to process image with Gemini');
   }
 }
+
+// Usage in addToGoogleCalendar
+async function addToGoogleCalendar(events) {
+  return new Promise((resolve, reject) => {
+    chrome.identity.getAuthToken({ interactive: true }, async (token) => {
+      try {
+        for (const event of events) {
+          const startDate = parseDateTime(event.Date, event.Time);
+          const endDate = new Date(startDate.getTime() + 3600000); // +1 hour
+
+          const eventBody = {
+            summary: event.Event,
+            start: formatCalendarDateTime(startDate),
+            end: formatCalendarDateTime(endDate),
+            visibility: "public"
+          };
+
+          const response = await fetch(
+            'https://www.googleapis.com/calendar/v3/calendars/primary/events',
+            {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(eventBody)
+            }
+          );
+
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error.message);
+          }
+        }
+        resolve();
+      } catch (error) {
+        reject(error);
+      }
+    });
+  });
+}
+
 
 function parseDateTime(dateStr, timeStr) {
   let date;
@@ -169,60 +209,3 @@ function formatCalendarDateTime(date) {
     timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
   };
 }
-
-// Usage in addToGoogleCalendar
-async function addToGoogleCalendar(events) {
-  return new Promise((resolve, reject) => {
-    chrome.identity.getAuthToken({ interactive: true }, async (token) => {
-      try {
-        for (const event of events) {
-          const startDate = parseDateTime(event.Date, event.Time);
-          const endDate = new Date(startDate.getTime() + 3600000); // +1 hour
-
-          const eventBody = {
-            summary: event.Event,
-            start: formatCalendarDateTime(startDate),
-            end: formatCalendarDateTime(endDate),
-            visibility: "public"
-          };
-
-          const response = await fetch(
-            'https://www.googleapis.com/calendar/v3/calendars/primary/events',
-            {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify(eventBody)
-            }
-          );
-
-          if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error.message);
-          }
-        }
-        resolve();
-      } catch (error) {
-        reject(error);
-      }
-    });
-  });
-}
-
-// Main workflow
-document.getElementById('processBtn').addEventListener('click', async () => {
-  const fileInput = document.getElementById('imageInput');
-  const file = fileInput.files[0];
-  
-  // Convert image to base64
-  const reader = new FileReader();
-  reader.onload = async (e) => {
-    const base64Image = e.target.result;
-    const events = await processImageWithGemini(base64Image);
-    await addToGoogleCalendar(events);
-    alert('Events added to Google Calendar!');
-  };
-  reader.readAsDataURL(file);
-}); 

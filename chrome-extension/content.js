@@ -110,7 +110,7 @@
       }).then(canvas => {
           // Convert the canvas to a data URL
           const dataURL = canvas.toDataURL('image/png');
-          console.log('Data URL generated:', dataURL); // Debug log
+ 
   
           // Send the screenshot data to the background script
           chrome.runtime.sendMessage({ action: 'screenshotCaptured', dataURL: dataURL });
