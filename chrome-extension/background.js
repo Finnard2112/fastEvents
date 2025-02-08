@@ -84,6 +84,26 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
+
+function parseJsonSafely(responseText) {
+  try {
+    const parsed = JSON.parse(responseText);
+    return parsed;
+  } catch (error) {
+      // Check if the error is a SyntaxError and if the error message contains "Unexpected token 'H'"
+      if (error instanceof SyntaxError && error.message.includes("Unexpected token 'H'")) {
+        const match = responseText.match(/\[.*\]/s);
+        if (match && match[0]) {
+          return JSON.parse(match[0]);
+      } else {
+        // If it's a different error, rethrow it or handle it as needed
+        throw error;
+      }
+    }
+  }
+}
+
+
 // Gemini image processing function
 async function processImageWithGemini(base64Image) {
   const today = new Date();
@@ -91,8 +111,8 @@ async function processImageWithGemini(base64Image) {
   console.log(formattedDate);
   const GEMINI_API_KEY = 'AIzaSyBJRlvSHktMRk85Vu6vHk56xYrevA8ZX4M'; // Replace with actual key
   const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite-preview-02-05:generateContent';
-  const instructionText = `Extract any event details from the provided text string that is extracted via OCR from an image of text messages; order them from soonest to latest in terms of date and time, then return them in the following JSON format: \`[{{ "Event": "...", "Time": "HH:MM AM/PM", "Date": "MM/DD/YYYY" }}]\`. Identify events as any activity or occasion tied to a specific time and/or date, make sure the date is correct (for example, 'tomorrow' should give the date of tomorrow). Today's date is ${formattedDate}. Extract clear event descriptions —e.g., 'Meeting with Alex')— standardize time formats to 12-hour, and date formats to 'MM/DD/YYYY.' If time or date is missing, leave the field blank. Ignore unrelated or irrelevant text, and ensure multiple events are output as separate entries in the JSON array. If no events are found, return an empty array (\`[]\`). Maintain consistent formatting and provide complete details whenever possible.`;
-
+  const instructionText = `Extract any event details from the provided text string that is extracted via OCR from an image of text messages; order them from soonest to latest in terms of date and time, then return them in the following JSON format: \`[{{ "Event": "...", "Time": "HH:MM AM/PM", "Date": "MM/DD/YYYY" }}]\`. Do not include any additional text, headers, explanations, or formatting; output only the JSON array. Identify events as any activity or occasion tied to a specific time and/or date, make sure the date is correct (for example, 'tomorrow' should give the date of tomorrow). Today's date is ${formattedDate}. Extract clear event descriptions —e.g., 'Meeting with Alex')— standardize time formats to 12-hour, and date formats to 'MM/DD/YYYY.' If time or date is missing, leave the field blank. Ignore unrelated or irrelevant text, and ensure multiple events are output as separate entries in the JSON array. If no events are found, return an empty array (\`[]\`). Maintain consistent formatting and provide complete details whenever possible.`;
+  console.log(instructionText)
 
   try {
     const response = await fetch(`${url}?key=${GEMINI_API_KEY}`, {
@@ -123,8 +143,9 @@ async function processImageWithGemini(base64Image) {
       .replace(/```json/g, '')
       .replace(/```/g, '')
       .trim();
-    console.log(jsonString)
-    return JSON.parse(jsonString);
+    
+      
+    return parseJsonSafely(jsonString);
   } catch (error) {
     console.error('Gemini API Error:', error);
     throw new Error('Failed to process image with Gemini');
