@@ -16,8 +16,7 @@
     ]
   },
   "host_permissions": [
-    "https://generativelanguage.googleapis.com/*",
-    "https://www.googleapis.com/*"
+  "<all_urls>"
   ],
   "action": {
     "default_icon": {
