@@ -226,9 +226,9 @@ async function addToGoogleCalendar(events) {
             throw new Error(error.error.message);
           }
         }
-        resolve();
+        return response;
       } catch (error) {
-        reject(error);
+        return error;
       }
     });
   });

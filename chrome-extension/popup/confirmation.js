@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
           console.log('Response from background:', response);
           // Optionally, display the ChatGPT result in the popup
         }
-        // window.close();
+        window.close();
       });
     });
     
