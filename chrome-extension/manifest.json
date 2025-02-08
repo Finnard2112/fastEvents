@@ -1,5 +1,6 @@
 {
   "manifest_version": 3,
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwVCg+SGizcta+irD6ITxqQUP6IOk/lwoeZ2YhTfuv22oZtt/X3xg3gy1DtgI5fOfCfOPgS2BKgUd+rQTv1+MNZZ1lN6kTTkTt11fn3IHBMzTX4Ic9pwUanWAjvFHWfEHb1CJnZNZ4rlsInWsKEC8JAOOc/HZc7o38YYUKtY5k8QMDP1z8z90kxDosksSvjM7ayBH1TJdb7HKr6frVKchP1wGXyWvhw4NoSUZ9AWQwQhihQ78tMabWmf2e2cIAfd8aDe0kFEUPojV04u1jfgHAt4mSBiYW9kAuzuVN5ryWABEePn6B2Tsp4MgE55kGuZFrYgmjMPhASayw5fc5YkACwIDAQAB",
   "name": "Fast Events",
   "version": "1.0",
   "description": "Create calendar events from text or image",
@@ -10,7 +11,7 @@
     "identity"
   ],
   "oauth2": {
-    "client_id": "178586951197-spg9qap2s7b3glplrfc77cohgu1eapk8.apps.googleusercontent.com",
+    "client_id": "387868846566-gev4gajldgc6n7acsgfsnlgoto44a1e0.apps.googleusercontent.com",
     "scopes": [
       "https://www.googleapis.com/auth/calendar.events"
     ]

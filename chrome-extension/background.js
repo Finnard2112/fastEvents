@@ -1,6 +1,5 @@
 // background.js
 
-
 // Listener for extension icon click
 chrome.action.onClicked.addListener((tab) => {
   chrome.scripting.executeScript({
@@ -52,8 +51,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       try {
         // Process image with Gemini
         const events = await processImageWithGemini(screenshotData);
+        console.log(events)
 
         res = await addToGoogleCalendar(events);
+        console.log(res)
 
         // Send success response
         sendResponse({ 
@@ -85,8 +86,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 // Gemini image processing function
 async function processImageWithGemini(base64Image) {
-  const GEMINI_API_KEY = ''; // Replace with actual key
+  const GEMINI_API_KEY = 'AIzaSyBJRlvSHktMRk85Vu6vHk56xYrevA8ZX4M'; // Replace with actual key
   const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite-preview-02-05:generateContent';
+  const instructionText = `Extract any event details from the provided text string that is extracted via OCR from an image of text messages; order them from soonest to latest in terms of date and time, then return them in the following JSON format: \`[{{ "Event": "...", "Time": "HH:MM AM/PM", "Date": "MM/DD/YYYY" }}]\`. Identify events as any activity or occasion tied to a specific time and/or date, make sure the date is correct (for example, 'tomorrow' should give the date of tomorrow). Extract clear event descriptions —e.g., 'Meeting with Alex')— standardize time formats to 12-hour, and date formats to 'MM/DD/YYYY.' If time or date is missing, leave the field blank. Ignore unrelated or irrelevant text, and ensure multiple events are output as separate entries in the JSON array. If no events are found, return an empty array (\`[]\`). Maintain consistent formatting and provide complete details whenever possible.`;
+
 
   try {
     const response = await fetch(`${url}?key=${GEMINI_API_KEY}`, {
@@ -102,7 +105,7 @@ async function processImageWithGemini(base64Image) {
               }
             },
             {
-              text: "Extract event details from image. Return JSON format: [{ 'Event': '...', 'Date': 'MM/DD/YYYY', 'Time': 'HH:MM AM/PM' }]"
+              text: instructionText
             }
           ]
         }]
@@ -112,59 +115,18 @@ async function processImageWithGemini(base64Image) {
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     
     const data = await response.json();
+    console.log(data)
     const jsonString = data.candidates[0].content.parts[0].text
       .replace(/```json/g, '')
       .replace(/```/g, '')
       .trim();
-    
+    console.log(jsonString)
     return JSON.parse(jsonString);
   } catch (error) {
     console.error('Gemini API Error:', error);
     throw new Error('Failed to process image with Gemini');
   }
 }
-
-// Usage in addToGoogleCalendar
-async function addToGoogleCalendar(events) {
-  return new Promise((resolve, reject) => {
-    chrome.identity.getAuthToken({ interactive: true }, async (token) => {
-      try {
-        for (const event of events) {
-          const startDate = parseDateTime(event.Date, event.Time);
-          const endDate = new Date(startDate.getTime() + 3600000); // +1 hour
-
-          const eventBody = {
-            summary: event.Event,
-            start: formatCalendarDateTime(startDate),
-            end: formatCalendarDateTime(endDate),
-            visibility: "public"
-          };
-
-          const response = await fetch(
-            'https://www.googleapis.com/calendar/v3/calendars/primary/events',
-            {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify(eventBody)
-            }
-          );
-
-          if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error.message);
-          }
-        }
-        resolve();
-      } catch (error) {
-        reject(error);
-      }
-    });
-  });
-}
-
 
 function parseDateTime(dateStr, timeStr) {
   let date;
@@ -210,6 +172,26 @@ function formatCalendarDateTime(date) {
     timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
   };
 }
+
+
+// chrome.identity.getAuthToken({interactive: true}, function(token) {
+//   let init = {
+//     method: 'GET',
+//     async: true,
+//     headers: {
+//       Authorization: 'Bearer ' + token,
+//       'Content-Type': 'application/json'
+//     },
+//     'contentType': 'json'
+//   };
+//   fetch(
+//       'https://people.googleapis.com/v1/contactGroups/all?maxMembers=20&key=API_KEY',
+//       init)
+//       .then((response) => response.json())
+//       .then(function(data) {
+//         console.log(data)
+//       });
+// });
 
 // Usage in addToGoogleCalendar
 async function addToGoogleCalendar(events) {
