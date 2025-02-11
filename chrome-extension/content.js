@@ -3,6 +3,29 @@
 (function() {
     let startX, startY, endX, endY;
     let selectionBox = null;
+
+    function onKeyDown(e) {
+      if (e.key === 'Escape') {
+        cancelSelection();
+      }
+    }
+  
+    // Cancel the selection process: remove listeners and overlay
+    function cancelSelection() {
+      // Remove the keydown listener
+      document.removeEventListener('keydown', onKeyDown);
+      
+      const overlay = document.getElementById('screenshot-overlay');
+      if (overlay) {
+        // Remove any mouse event listeners
+        overlay.removeEventListener('mousedown', startSelectionArea);
+        overlay.removeEventListener('mousemove', resizeSelectionArea);
+        overlay.removeEventListener('mouseup', finalizeSelectionArea);
+        // Remove the overlay from the document
+        document.body.removeChild(overlay);
+        console.log('Selection cancelled via Escape.');
+      }
+    }
   
     // Listen for messages from the background script
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -41,6 +64,9 @@
       });
       overlay.appendChild(selectionBox);
   
+      // Listen for the Escape key to cancel selection
+      document.addEventListener('keydown', onKeyDown);
+
       // Mouse events to handle selection
       overlay.addEventListener('mousedown', startSelectionArea);
     }
