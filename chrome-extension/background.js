@@ -1,22 +1,5 @@
 // background.js
 
-// Listener for extension icon click
-chrome.action.onClicked.addListener((tab) => {
-  chrome.scripting.executeScript({
-    target: { tabId: tab.id },
-    files: ['lib/html2canvas.min.js','content.js']
-  }, () => {
-    if (chrome.runtime.lastError) {
-      console.error(`Failed to inject scripts: ${chrome.runtime.lastError.message}`);
-      return;
-    }
-    console.log('Scripts injected successfully.');
-
-    // Send a message to content.js to start selection
-    chrome.tabs.sendMessage(tab.id, { action: 'startSelection' });
-  });
-});
-
 // Listener for messages from content scripts
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'screenshotCaptured' && request.dataURL) {
