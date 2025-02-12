@@ -4,12 +4,31 @@
   <head>
     <meta charset="UTF-8">
     <title>Start Selection</title>
-    <!-- Link a CSS file if needed -->
+    <style>
+        /* Reset default margin/padding */
+        html, body {
+          margin: 0;
+          padding: 0;
+        }
+        /* Container that determines the popup size */
+        .popup-container {
+          /* For example, use 80vw (80% of the viewport width) but with a min-width */
+          width: 50vw;
+          min-width: 200px;
+          max-width: 300px; /* Optional maximum width */
+          padding: 1em;
+        }
+      </style>
     <script src="popup.js" defer></script>
   </head>
   <body>
-    <h1>Extension Popup</h1>
-    <p>Click the button below to start selection.</p>
-    <button id="startSelection">Start Selection</button>
+    <div class="popup-container"> 
+        <h1>Fast Events</h1>
+        <p> Click this button to visit your calendar</p>
+        <button id="openCalendar">Open Google Calendar</button>
+
+        <p>Click the button below to start selection.</p>
+        <button id="startSelection">Start Selection</button>
+    </div>
   </body>
 </html>

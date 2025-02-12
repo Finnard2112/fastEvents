@@ -26,3 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
   });
+
+document.getElementById('openCalendar').addEventListener('click', () => {
+    window.open('https://calendar.google.com/', '_blank');
+});

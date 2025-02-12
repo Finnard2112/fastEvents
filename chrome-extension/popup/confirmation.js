@@ -1,14 +1,13 @@
 // confirmation.js
 
-
-
 document.addEventListener('DOMContentLoaded', () => {
     const screenshotImg = document.getElementById('screenshot');
     const confirmBtn = document.getElementById('confirm-btn');
     const cancelBtn = document.getElementById('cancel-btn');
-  
+    let events = null
+    
     // Retrieve the screenshot from chrome.storage.local
-    chrome.storage.local.get('screenshot', (data) => {
+    chrome.storage.local.get(['screenshot', 'gemEvents'], async (data) => {
       if (data.screenshot) {
         screenshotImg.src = data.screenshot;
       } else {
@@ -16,6 +15,13 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('info').textContent = 'No screenshot available.';
         confirmBtn.disabled = true;
         cancelBtn.textContent = 'Close';
+      }
+
+      if (data.gemEvents) {
+        events = data.gemEvents;
+        console.log("GemEvents retrieved:", events);
+      } else {
+        console.log("No gemEvents found");
       }
     });
 
@@ -26,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
           console.log('Response from background:', response);
         }
-        window.close();
+        // window.close();
       });
     });
     
@@ -40,6 +46,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         window.close();
       });
+    });
+
+    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+      if (request.action === 'eventsConfirmation' && request.events) {
+        let events = request.events
+        console.log(events)
+      }
     });
   });
   

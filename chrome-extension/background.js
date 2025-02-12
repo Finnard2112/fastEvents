@@ -1,76 +1,64 @@
 // background.js
 
-// Listener for messages from content scripts
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'screenshotCaptured' && request.dataURL) {
-    // Store the screenshot data
+    const screenshotData = request.dataURL;
+
     chrome.storage.local.set({ screenshot: request.dataURL }, () => {
       console.log('Screenshot data stored.');
     });
-
-    // Open the confirmation popup window with the screenshot data
-    chrome.windows.create({
-      url: chrome.runtime.getURL('popup/confirmation.html'),
-      type: 'popup',
-      width: 400,
-      height: 600
-    }, (window) => {
-      console.log('Confirmation popup opened.');
-    });
-  }
-});
-
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === 'processScreenshot') {
-    // Retrieve the screenshot from chrome.storage.local
-    chrome.storage.local.get('screenshot', async (data) => {
-      const screenshotData = data.screenshot;
-      console.log('Data URL generated:', screenshotData); // Debug log
-      if (!screenshotData) {
-        sendResponse({ status: 'error', message: 'No screenshot found' });
-        return;
-      }
-
+    
+    (async () => {
       try {
-        // Process image with Gemini
+        // Process image with Gemini using the provided data URL
         const events = await processImageWithGemini(screenshotData);
+
+        console.log("THis is events")
         console.log(events)
 
-        res = await addToGoogleCalendar(events);
-        console.log(res)
 
-        // Send success response
-        sendResponse({ 
-          status: 'success', 
-          data: {
-            message: 'Events created successfully',
-            events: events
-          }
+        chrome.storage.local.set({ gemEvents: events }, () => {
+
+          chrome.windows.create({
+            url: chrome.runtime.getURL('popup/confirmation.html'),
+            type: 'popup',
+            width: 400,
+            height: 600
+          }, (window) => {
+            console.log('Confirmation popup opened.');
+          });
         });
+
       } catch (error) {
         console.error('Error processing screenshot:', error);
-        sendResponse({ 
-          status: 'error', 
+        sendResponse({
+          status: 'error',
           message: error.message || 'Failed to process image'
         });
       }
-    });
-    
-    // Return true to indicate async response
+    })();
+
+    // Return true to indicate sendResponse will be called asynchronously
     return true;
   } else if (request.action === 'cancelScreenshot') {
-    // Clear the stored screenshot
-    chrome.storage.local.remove('screenshot', () => {
-      sendResponse({ status: 'cancelled' });
-    });
+    sendResponse({ status: 'cancelled' });
     return true;
   }
 });
+
+// chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+//   if (request.action === 'eventsConfirmed' && request.dataURL) {
+//     // Add the events to Google Calendar
+//     const res = await addToGoogleCalendar(events);
+//   }
+// });
 
 
 function parseJsonSafely(responseText) {
   try {
     const parsed = JSON.parse(responseText);
+    console.log("parsing JSON safely")
+    console.log(parsed)
     return parsed;
   } catch (error) {
       // Check if the error is a SyntaxError and if the error message contains "Unexpected token 'H'"
@@ -91,11 +79,9 @@ function parseJsonSafely(responseText) {
 async function processImageWithGemini(base64Image) {
   const today = new Date();
   const formattedDate = today.toLocaleDateString('en-US');
-  console.log(formattedDate);
-  const GEMINI_API_KEY = 'AIzaSyBJRlvSHktMRk85Vu6vHk56xYrevA8ZX4M'; // Replace with actual key
-  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite-preview-02-05:generateContent';
+  const GEMINI_API_KEY = 'AIzaSyCyCNjipWqNJc3dTJs6ePr7rwwlZWiESYM'; // Replace with actual key
+  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
   const instructionText = `Extract any event details from the provided text string that is extracted via OCR from an image of text messages; order them from soonest to latest in terms of date and time, then return them in the following JSON format: \`[{{ "Event": "...", "Time": "HH:MM AM/PM", "Date": "MM/DD/YYYY" }}]\`. Do not include any additional text, headers, explanations, or formatting; output only the JSON array. Identify events as any activity or occasion tied to a specific time and/or date, make sure the date is correct (for example, 'tomorrow' should give the date of tomorrow). Today's date is ${formattedDate}. Extract clear event descriptions —e.g., 'Meeting with Alex')— standardize time formats to 12-hour, and date formats to 'MM/DD/YYYY.' If time or date is missing, leave the field blank. Ignore unrelated or irrelevant text, and ensure multiple events are output as separate entries in the JSON array. If no events are found, return an empty array (\`[]\`). Maintain consistent formatting and provide complete details whenever possible.`;
-  console.log(instructionText)
 
   try {
     const response = await fetch(`${url}?key=${GEMINI_API_KEY}`, {
@@ -105,13 +91,13 @@ async function processImageWithGemini(base64Image) {
         contents: [{
           parts: [
             {
+              text: instructionText
+            },
+            {
               inline_data: {
                 mime_type: "image/png",
                 data: base64Image.split(',')[1] // Remove data URL prefiximageDataUrl
               }
-            },
-            {
-              text: instructionText
             }
           ]
         }]
@@ -121,12 +107,10 @@ async function processImageWithGemini(base64Image) {
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     
     const data = await response.json();
-    console.log(data)
     const jsonString = data.candidates[0].content.parts[0].text
       .replace(/```json/g, '')
       .replace(/```/g, '')
       .trim();
-    
       
     return parseJsonSafely(jsonString);
   } catch (error) {
