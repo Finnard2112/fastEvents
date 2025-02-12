@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Screenshot Confirmation</title>
+  <title>Screenshot Confirmation & Edit Events</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -12,7 +12,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
     }
     #screenshot {
       max-width: 100%;
@@ -24,6 +24,26 @@
       margin-bottom: 20px;
       text-align: center;
     }
+    /* Container for each event editing box */
+    .event-entry {
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin: 10px;
+      width: 100%;
+      max-width: 600px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .event-entry input {
+      padding: 5px;
+      font-size: 14px;
+    }
+    .buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
     button {
       padding: 10px 20px;
       font-size: 16px;
@@ -33,13 +53,13 @@
   </style>
 </head>
 <body>
-  <h2>Confirm Screenshot</h2>
+  <h2>Confirm Screenshot & Edit Events</h2>
   <img id="screenshot" src="" alt="Screenshot">
   <div id="info">Do you want to create an event from this screenshot?</div>
-  <div>
-    <button id="confirm-btn">Confirm</button>
-    <button id="cancel-btn">Cancel</button>
-  </div>
+
+  <!-- Container where each event's editable box will be rendered -->
+  <div id="events-container"></div>
+  
 
   <script src="confirmation.js" defer></script>
 </body>
