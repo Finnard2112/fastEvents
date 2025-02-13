@@ -35,11 +35,11 @@ SCOPES = [
     'https://www.googleapis.com/auth/calendar.events',
     'https://www.googleapis.com/auth/calendar'  # For calendar sharing
 ]
-CREDENTIALS_FILE = '/Users/dzui_/fastEvents/docs/credentials.json'  # Path to your credentials file (downloaded from Google Cloud Console)
-TOKEN_FILE = '/Users/dzui_/fastEvents/docs/token.json' # Path to store the token
+CREDENTIALS_FILE = '/Users/dzui_/fastEvents/duy/docs/credentials.json'  # Path to your credentials file (downloaded from Google Cloud Console)
+TOKEN_FILE = '/Users/dzui_/fastEvents/duy/docs/token.json' # Path to store the token
 
 def extract_text_from_image(image_path):
-    genai.configure(api_key="AIzaSyBs9rnjsdUNMqMICOI2V9oqSIT-TG-IClw")
+    genai.configure(api_key="AIzaSyBJRlvSHktMRk85Vu6vHk56xYrevA8ZX4M")
     model = genai.GenerativeModel("gemini-1.5-flash")
 
     try:
@@ -69,7 +69,7 @@ def extract_text_from_image(image_path):
 def generate(extracted_text):
     today = datetime.now()
 
-    genai.configure(api_key="AIzaSyBs9rnjsdUNMqMICOI2V9oqSIT-TG-IClw")
+    genai.configure(api_key="AIzaSyBJRlvSHktMRk85Vu6vHk56xYrevA8ZX4M")
     model = genai.GenerativeModel("gemini-1.5-flash")
     text = extracted_text
 
@@ -201,7 +201,7 @@ def add_event_to_calendar(event_data):
 
 
 if __name__ == "__main__":
-    image_path = "/Users/dzui_/fastEvents/duy/images/Screenshot 0007-01-25 at 14.51.22.png"  # Replace with your image path
+    image_path = "/Users/dzui_/fastEvents/duy/images/screenshot 0007-02-09 at 22.38.18.png"  # Replace with your image path
 
     extracted_text = extract_text_from_image(image_path)
     if extracted_text:
