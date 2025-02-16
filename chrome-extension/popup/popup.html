@@ -1,34 +1,38 @@
-<!-- popup.html -->
 <!DOCTYPE html>
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>Start Selection</title>
-    <style>
-        /* Reset default margin/padding */
-        html, body {
-          margin: 0;
-          padding: 0;
-        }
-        /* Container that determines the popup size */
-        .popup-container {
-          /* For example, use 80vw (80% of the viewport width) but with a min-width */
-          width: 50vw;
-          min-width: 200px;
-          max-width: 300px; /* Optional maximum width */
-          padding: 1em;
-        }
-      </style>
-    <script src="popup.js" defer></script>
+    <title>Fast Events</title>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="popup.css">
   </head>
   <body>
     <div class="popup-container"> 
-        <h1>Fast Events</h1>
-        <p> Click this button to visit your calendar</p>
-        <button id="openCalendar">Open Google Calendar</button>
-
-        <p>Click the button below to start selection.</p>
-        <button id="startSelection">Start Selection</button>
+        <header class="calendar-header">
+          <img src="icon.png" alt="Calendar" class="header-icon">
+          <h1>Fast Events</h1>
+        </header>
+        
+        <div class="content-section">
+          <p class="instruction-text">Quickly create calendar events from screenshots</p>
+          
+          <div class="button-group">
+            <button class="gcal-button primary" id="startSelection">
+              <span class="button-icon">📅</span>
+              Create from Screenshot
+            </button>
+            
+            <button class="gcal-button secondary" id="openCalendar">
+              <span class="button-icon">🔗</span>
+              Open Calendar
+            </button>
+          </div>
+        </div>
+        
+        <footer class="gcal-footer">
+          <span class="brand-text">Powered by Google Calendar</span>
+        </footer>
     </div>
+    <script src="popup.js" defer></script>
   </body>
 </html>

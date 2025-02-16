@@ -1,0 +1,126 @@
+/* Google Calendar-inspired styles */
+:root {
+    --gcal-blue: #1a73e8;
+    --gcal-blue-hover: #1557b0;
+    --gcal-background: #f8f9fa;
+    --gcal-text: #202124;
+    --gcal-border: #dadce0;
+  }
+  
+  /* Base styles */
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  
+  body {
+    font-family: 'Google Sans', 'Roboto', Arial, sans-serif;
+    background: var(--gcal-background);
+    color: var(--gcal-text);
+    font-size: 14px;
+    min-width: 280px;
+  }
+  
+  .popup-container {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  /* Header styles */
+  .calendar-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--gcal-border);
+  }
+  
+  .calendar-header h1 {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--gcal-text);
+  }
+  
+  .header-icon {
+    width: 24px;
+    height: 24px;
+  }
+  
+  /* Button styles */
+  .button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 16px;
+  }
+  
+  .gcal-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 24px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    text-align: left;
+  }
+  
+  .gcal-button.primary {
+    background: var(--gcal-blue);
+    color: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+  }
+  
+  .gcal-button.primary:hover {
+    background: var(--gcal-blue-hover);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.16);
+  }
+  
+  .gcal-button.secondary {
+    background: white;
+    color: var(--gcal-blue);
+    border: 1px solid var(--gcal-border);
+  }
+  
+  .gcal-button.secondary:hover {
+    background: #f8f9fe;
+    border-color: var(--gcal-blue);
+  }
+  
+  .button-icon {
+    font-size: 16px;
+  }
+  
+  /* Text styles */
+  .instruction-text {
+    text-align: center;
+    color: #5f6368;
+    line-height: 1.5;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  
+  /* Footer styles */
+  .gcal-footer {
+    padding-top: 16px;
+    border-top: 1px solid var(--gcal-border);
+    text-align: center;
+  }
+  
+  .brand-text {
+    font-size: 12px;
+    color: #5f6368;
+    font-weight: 400;
+  }
+  
+  /* Loading state */
+  .gcal-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
