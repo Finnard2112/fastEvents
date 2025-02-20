@@ -18,10 +18,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (data.gemEvents) {
       events = data.gemEvents;
-      console.log("GemEvents retrieved:", events);
+      console.log("Events retrieved:", events);
       renderEvents(events);
     } else {
-      console.log("No gemEvents found");
+      console.log("No Events found");
     }
   });
   
@@ -115,35 +115,4 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Confirm Screenshot button (keeps the events as they are and processes screenshot).
-  confirmBtn.addEventListener('click', () => {
-    chrome.runtime.sendMessage({ action: 'processScreenshot' }, (response) => {
-      if (chrome.runtime.lastError) {
-        console.error('Error:', chrome.runtime.lastError);
-      } else {
-        console.log('Response from background:', response);
-      }
-      // Optionally, you can close the window here.
-      // window.close();
-    });
-  });
-
-  // Cancel button to abort the screenshot creation.
-  cancelBtn.addEventListener('click', () => {
-    chrome.runtime.sendMessage({ action: 'cancelScreenshot' }, (response) => {
-      if (chrome.runtime.lastError) {
-        console.error('Error:', chrome.runtime.lastError);
-      } else {
-        console.log('Cancel response:', response);
-      }
-      window.close();
-    });
-  });
-
-  // Optionally, listen for additional messages.
-  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action === 'eventsConfirmation' && request.events) {
-      console.log(request.events);
-    }
-  });
 });
