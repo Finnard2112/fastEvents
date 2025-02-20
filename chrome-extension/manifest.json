@@ -40,7 +40,7 @@
     "_execute_action": {
       "suggested_key": {
         "default": "Ctrl+Shift+Q",
-        "mac": "Ctrl+Q"
+        "mac": "Ctrl+`"
       }
     }
   }
