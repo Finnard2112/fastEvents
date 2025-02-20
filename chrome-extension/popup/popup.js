@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Send a message to the content script to start the selection process
         chrome.tabs.sendMessage(tabId, { action: 'startSelection' });
+        window.close()
       });
     });
   });

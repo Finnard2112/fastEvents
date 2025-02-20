@@ -62,7 +62,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           chrome.windows.create({
             url: chrome.runtime.getURL('popup/confirmation.html'),
             type: 'popup',
-            width: 400,
+            width: 500,
             height: 600
           }, (window) => {
             console.log('Confirmation popup opened.');
@@ -86,12 +86,23 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
-// chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-//   if (request.action === 'eventsConfirmed' && request.dataURL) {
-//     // Add the events to Google Calendar
-//     const res = await addToGoogleCalendar(events);
-//   }
-// });
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === 'eventsConfirmed') {
+    chrome.storage.local.get(['screenshot', 'gemEvents'], (data) => {
+      (async () => {
+        if (data.gemEvents) {
+          let events = data.gemEvents;
+          const res = await addToGoogleCalendar(events);
+          console.log("Calendar response")
+          console.log(res)
+        } else {
+          console.log("No Events found");
+        }
+      })();
+    });
+
+  }
+});
 
 
 function parseJsonSafely(responseText) {
@@ -210,6 +221,8 @@ async function addToGoogleCalendar(events) {
     chrome.identity.getAuthToken({ interactive: true }, async (token) => {
       try {
         for (const event of events) {
+
+          console.log(event)
           const startDate = parseDateTime(event.Date, event.Time);
           const endDate = new Date(startDate.getTime() + 3600000); // +1 hour
 
@@ -219,6 +232,8 @@ async function addToGoogleCalendar(events) {
             end: formatCalendarDateTime(endDate),
             visibility: "public"
           };
+
+          console.log(eventBody)
 
           const response = await fetch(
             'https://www.googleapis.com/calendar/v3/calendars/primary/events',
@@ -237,6 +252,7 @@ async function addToGoogleCalendar(events) {
             throw new Error(error.error.message);
           }
         }
+        console.log("Sent fetch")
         return response;
       } catch (error) {
         return error;

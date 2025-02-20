@@ -25,16 +25,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
   
-  // Renders the events editing boxes inside the events-container element.
   function renderEvents(eventsArray) {
     const container = document.getElementById('events-container');
     container.innerHTML = ''; // Clear previous content
-    eventsArray.forEach((eventObj, index) => {
-      // Create the wrapper for this event
-      const entry = document.createElement('div');
-      entry.className = 'event-entry';
-      entry.dataset.index = index; // store index for reference
 
+    console.log(eventsArray)
+  
+    // Create a wrapper for the events list
+    const eventsWrapper = document.createElement('div');
+    eventsWrapper.className = 'events-wrapper';
+  
+    eventsArray.forEach((eventObj, index) => {
+      // Create a horizontal box container for this event
+      const eventEntry = document.createElement('div');
+      eventEntry.className = 'event-entry';
+      eventEntry.dataset.index = index;
+  
       // Create the Event name field (text)
       const eventInput = document.createElement('input');
       eventInput.type = 'text';
@@ -48,71 +54,94 @@ document.addEventListener('DOMContentLoaded', () => {
       dateInput.placeholder = 'MM/DD/YYYY';
       dateInput.pattern = '(0[1-9]|1[0-2])\\/(0[1-9]|[12]\\d|3[01])\\/\\d{4}';
 
-      // Create the Time field (using input type="time" for 24-hour HH:MM format)
+  
+      // Create the Time input (text)
       const timeInput = document.createElement('input');
-      timeInput.type = 'time';
+      timeInput.type = 'text';
       timeInput.value = eventObj.Time || '';
       timeInput.placeholder = 'HH:MM';
-
-      // Container for the Confirm and Remove buttons
-      const btnContainer = document.createElement('div');
-      btnContainer.className = 'buttons';
-
-      // Confirm button to commit changes for this event.
-      const confirmEventBtn = document.createElement('button');
-      confirmEventBtn.textContent = 'Confirm';
-      confirmEventBtn.addEventListener('click', () => {
-        const updatedEvent = {
-          Event: eventInput.value,
-          Date: dateInput.value,
-          Time: timeInput.value
-        };
-
-        // Validate the Date field with a regex (MM/DD/YYYY)
-        const dateRegex = /^(0[1-9]|1[0-2])\/(0[1-9]|[12]\d|3[01])\/\d{4}$/;
-        if (!dateRegex.test(updatedEvent.Date)) {
-          alert('Please enter a valid date in MM/DD/YYYY format.');
+  
+      // Create an additional button on the right for this event
+      const extraBtn = document.createElement('button');
+      extraBtn.textContent = '+';
+      extraBtn.addEventListener('click', () => {
+        console.log(`Extra button clicked for event at index ${index}`);
+        // Add any extra action you need here
+      });
+  
+      // Append the inputs and extra button to the event entry.
+      eventEntry.appendChild(eventInput);
+      eventEntry.appendChild(dateInput);
+      eventEntry.appendChild(timeInput);
+      eventEntry.appendChild(extraBtn);
+  
+      // Append the event entry to the events wrapper.
+      eventsWrapper.appendChild(eventEntry);
+    });
+  
+    // Append the events wrapper to the container.
+    container.appendChild(eventsWrapper);
+  
+    // Create a container for the overall Confirm and Exit buttons.
+    const actionContainer = document.createElement('div');
+    actionContainer.className = 'action-container';
+  
+    // One Confirm button for all events.
+    const confirmAllBtn = document.createElement('button');
+    confirmAllBtn.textContent = 'Confirm All';
+    confirmAllBtn.addEventListener('click', () => {
+      // Regexes for date (MM/DD/YYYY) and time (24-hour HH:MM)
+      const dateRegex = /^(0[1-9]|1[0-2])\/(0[1-9]|[12]\d|3[01])\/\d{4}$/;
+      const timeRegex = /^((0?[1-9]|1[0-2]):([0-5]\d)\s?(AM|PM)|([01]\d|2[0-3]):([0-5]\d))$/i;
+      let valid = true;
+      const updatedEvents = [];
+  
+      // Validate every event entry.
+      const entries = document.querySelectorAll('.event-entry');
+      entries.forEach((entry) => {
+        const [eventInput, dateInput, timeInput] = entry.children;
+        if (!dateRegex.test(dateInput.value)) {
+          alert('One or more events have an invalid date format. Please use MM/DD/YYYY.');
+          valid = false;
           return;
         }
-        // The time field is an input type "time", so its value should already be valid in HH:MM format.
-
-        // Update the event in the array and save to storage.
-        events[index] = updatedEvent;
-        chrome.storage.local.set({ gemEvents: events }, () => {
-          console.log(`Event at index ${index} updated:`, updatedEvent);
-          confirmEventBtn.textContent = 'Saved';
-          setTimeout(() => {
-            confirmEventBtn.textContent = 'Confirm';
-          }, 2000);
+        if (!timeRegex.test(timeInput.value)) {
+          alert('One or more events have an invalid time format. Please use HH:MM in 24-hour format.');
+          valid = false;
+          return;
+        }
+        updatedEvents.push({
+          Event: eventInput.value,
+          Date: dateInput.value,
+          Time: timeInput.value,
         });
       });
-
-      // Remove button to delete this event.
-      const removeEventBtn = document.createElement('button');
-      removeEventBtn.textContent = 'Remove';
-      removeEventBtn.addEventListener('click', () => {
-        // Remove the event from the array
-        events.splice(index, 1);
-        chrome.storage.local.set({ gemEvents: events }, () => {
-          console.log(`Event at index ${index} removed.`);
-          // Re-render the events list with updated array.
-          renderEvents(events);
+  
+      if (valid) {
+        // Update storage with the updated events array.
+        chrome.storage.local.set({ gemEvents: updatedEvents }, () => {
+          console.log('All events updated:', updatedEvents);
+          alert('Events saved successfully!');
         });
-      });
 
-      // Append the buttons to the button container.
-      btnContainer.appendChild(confirmEventBtn);
-      btnContainer.appendChild(removeEventBtn);
-
-      // Append the inputs and button container to the event entry.
-      entry.appendChild(eventInput);
-      entry.appendChild(dateInput);
-      entry.appendChild(timeInput);
-      entry.appendChild(btnContainer);
-
-      // Append the event entry to the container.
-      container.appendChild(entry);
+        chrome.runtime.sendMessage({ action: 'eventsConfirmed'});
+        // window.close()
+      }
     });
-  }
+  
+    // Exit button to close or exit the popup.
+    const exitBtn = document.createElement('button');
+    exitBtn.textContent = 'Exit';
+    exitBtn.addEventListener('click', () => {
+      window.close();
+    });
+  
+    // Append the buttons to the action container.
+    actionContainer.appendChild(confirmAllBtn);
+    actionContainer.appendChild(exitBtn);
+  
+    // Append the action container to the main container.
+    container.appendChild(actionContainer);
+  }  
 
 });

@@ -24,20 +24,10 @@
       margin-bottom: 20px;
       text-align: center;
     }
-    /* Container for each event editing box */
-    .event-entry {
-      border: 1px solid #ddd;
-      padding: 10px;
-      margin: 10px;
-      width: 100%;
-      max-width: 600px;
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-    }
     .event-entry input {
       padding: 5px;
       font-size: 14px;
+      width: 90px;
     }
     .buttons {
       display: flex;
@@ -50,6 +40,15 @@
       cursor: pointer;
       margin: 5px;
     }
+    .event-entry {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 10px; /* Optional: space between inputs */
+      border: 1px solid black;
+      padding: 5px;
+    }
+
   </style>
 </head>
 <body>
