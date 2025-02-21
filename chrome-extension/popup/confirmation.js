@@ -1,5 +1,3 @@
-// confirmation.js
-
 document.addEventListener('DOMContentLoaded', () => {
   const screenshotImg = document.getElementById('screenshot');
   const confirmBtn = document.getElementById('confirm-btn');
@@ -29,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById('events-container');
     container.innerHTML = ''; // Clear previous content
 
-    console.log(eventsArray)
+    console.log(eventsArray);
   
     // Create a wrapper for the events list
     const eventsWrapper = document.createElement('div');
@@ -53,7 +51,6 @@ document.addEventListener('DOMContentLoaded', () => {
       dateInput.value = eventObj.Date || '';
       dateInput.placeholder = 'MM/DD/YYYY';
       dateInput.pattern = '(0[1-9]|1[0-2])\\/(0[1-9]|[12]\\d|3[01])\\/\\d{4}';
-
   
       // Create the Time input (text)
       const timeInput = document.createElement('input');
@@ -64,6 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Create an additional button on the right for this event
       const extraBtn = document.createElement('button');
       extraBtn.textContent = '+';
+      extraBtn.className = 'extra-btn';
       extraBtn.addEventListener('click', () => {
         console.log(`Extra button clicked for event at index ${index}`);
         // Check if a dropdown already exists for this event.
@@ -77,15 +75,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // Create the dropdown container
         dropdown = document.createElement('div');
         dropdown.className = 'dropdown-container';
-        dropdown.style.border = '1px solid #ccc';
-        dropdown.style.padding = '10px';
-        dropdown.style.marginTop = '10px';
-        dropdown.style.backgroundColor = '#f9f9f9';
         
         // --- Timezone Field ---
         const timezoneLabel = document.createElement('label');
         timezoneLabel.textContent = 'Timezone: ';
-        timezoneLabel.style.display = 'block';
+        timezoneLabel.className = 'dropdown-label';
         
         const timezoneInput = document.createElement('input');
         timezoneInput.type = 'text';
@@ -94,12 +88,33 @@ document.addEventListener('DOMContentLoaded', () => {
         const timezoneDatalist = document.createElement('datalist');
         timezoneDatalist.id = `tz-list-${index}`;
         const commonTimezones = [
-          'America/New_York',
-          'Europe/London',
-          'Asia/Tokyo',
-          'America/Los_Angeles',
-          'Europe/Paris'
-        ];
+          "Etc/UTC",
+          "America/New_York",
+          "America/Chicago",
+          "America/Denver",
+          "America/Los_Angeles",
+          "America/Anchorage",
+          "Pacific/Honolulu",
+          "America/Halifax",
+          "Europe/London",
+          "Europe/Berlin",
+          "Europe/Athens",
+          "Europe/Moscow",
+          "Asia/Kolkata",
+          "Asia/Shanghai",
+          "Asia/Tokyo",
+          "Asia/Seoul",
+          "Australia/Sydney",
+          "Australia/Adelaide",
+          "Australia/Perth",
+          "Pacific/Auckland",
+          "America/Sao_Paulo",
+          "America/Argentina/Buenos_Aires",
+          "America/Santiago",
+          "Africa/Abidjan",
+          "Africa/Johannesburg",
+          "Africa/Cairo"
+        ];        
         commonTimezones.forEach(tz => {
           const option = document.createElement('option');
           option.value = tz;
@@ -110,18 +125,16 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- Attendees Emails Field ---
         const attendeesLabel = document.createElement('label');
         attendeesLabel.textContent = 'Attendees Emails: ';
-        attendeesLabel.style.display = 'block';
+        attendeesLabel.className = 'dropdown-label';
         
         const attendeesInput = document.createElement('input');
         attendeesInput.type = 'email';
         attendeesInput.placeholder = 'Enter attendee email';
-        // If you need multiple emails, you might accept a comma-separated string:
-        // Alternatively, you can allow adding multiple inputs.
         
         // --- Description Field ---
         const descriptionLabel = document.createElement('label');
         descriptionLabel.textContent = 'Description: ';
-        descriptionLabel.style.display = 'block';
+        descriptionLabel.className = 'dropdown-label';
         
         const descriptionInput = document.createElement('input');
         descriptionInput.type = 'text';
@@ -130,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- Location Field ---
         const locationLabel = document.createElement('label');
         locationLabel.textContent = 'Location: ';
-        locationLabel.style.display = 'block';
+        locationLabel.className = 'dropdown-label';
         
         const locationInput = document.createElement('input');
         locationInput.type = 'text';
@@ -139,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- Reminders Field ---
         const remindersLabel = document.createElement('label');
         remindersLabel.textContent = 'Reminders: ';
-        remindersLabel.style.display = 'block';
+        remindersLabel.className = 'dropdown-label';
         
         // Reminder method: email or popup
         const reminderMethodSelect = document.createElement('select');
@@ -177,17 +190,15 @@ document.addEventListener('DOMContentLoaded', () => {
         dropdown.appendChild(reminderMinutesInput);
         
         eventEntry.appendChild(dropdown);
-        });
-
-          
-        // Append the inputs and extra button to the event entry.
-        eventEntry.appendChild(eventInput);
-        eventEntry.appendChild(dateInput);
-        eventEntry.appendChild(timeInput);
-        eventEntry.appendChild(extraBtn);
-        
-
-        eventsWrapper.appendChild(eventEntry);
+      });
+  
+      // Append the inputs and extra button to the event entry.
+      eventEntry.appendChild(eventInput);
+      eventEntry.appendChild(dateInput);
+      eventEntry.appendChild(timeInput);
+      eventEntry.appendChild(extraBtn);
+  
+      eventsWrapper.appendChild(eventEntry);
     });
     
     // Append the events wrapper to the container.
@@ -200,8 +211,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // One Confirm button for all events.
     const confirmAllBtn = document.createElement('button');
     confirmAllBtn.textContent = 'Confirm All';
+    confirmAllBtn.className = 'confirm-btn';
     confirmAllBtn.addEventListener('click', () => {
-      // Regexes for date (MM/DD/YYYY) and time (24-hour HH:MM)
+      // Regexes for date (MM/DD/YYYY) and time (supports 12-hour and 24-hour formats)
       const dateRegex = /^(0[1-9]|1[0-2])\/(0[1-9]|[12]\d|3[01])\/\d{4}$/;
       const timeRegex = /^((0?[1-9]|1[0-2]):([0-5]\d)\s?(AM|PM)|([01]\d|2[0-3]):([0-5]\d))$/i;
       let valid = true;
@@ -210,21 +222,57 @@ document.addEventListener('DOMContentLoaded', () => {
       // Validate every event entry.
       const entries = document.querySelectorAll('.event-entry');
       entries.forEach((entry) => {
-        const [eventInput, dateInput, timeInput] = entry.children;
+        // Get the main inputs (assuming fixed order)
+        const eventInput = entry.children[0];
+        const dateInput = entry.children[1];
+        const timeInput = entry.children[2];
+  
         if (!dateRegex.test(dateInput.value)) {
           alert('One or more events have an invalid date format. Please use MM/DD/YYYY.');
           valid = false;
           return;
         }
         if (!timeRegex.test(timeInput.value)) {
-          alert('One or more events have an invalid time format. Please use HH:MM in 24-hour format.');
+          alert('One or more events have an invalid time format. Please use HH:MM (24-hour) or 12-hour format with AM/PM.');
           valid = false;
           return;
         }
+  
+        // Check for dropdown container
+        const dropdown = entry.querySelector('.dropdown-container');
+        let timezone = "None",
+            attendees = "None",
+            description = "None",
+            location = "None",
+            reminderMethod = "None",
+            reminderMinutes = "None";
+  
+        if (dropdown) {
+          const timezoneInput = dropdown.querySelector('input[placeholder="Enter IANA timezone"]');
+          const attendeesInput = dropdown.querySelector('input[type="email"]');
+          const descriptionInput = dropdown.querySelector('input[placeholder="Event description"]');
+          const locationInput = dropdown.querySelector('input[placeholder="Event location"]');
+          const reminderMethodSelect = dropdown.querySelector('select');
+          const reminderMinutesInput = dropdown.querySelector('input[type="number"]');
+  
+          timezone = (timezoneInput && timezoneInput.value.trim() !== "") ? timezoneInput.value.trim() : "None";
+          attendees = (attendeesInput && attendeesInput.value.trim() !== "") ? attendeesInput.value.trim() : "None";
+          description = (descriptionInput && descriptionInput.value.trim() !== "") ? descriptionInput.value.trim() : "None";
+          location = (locationInput && locationInput.value.trim() !== "") ? locationInput.value.trim() : "None";
+          reminderMethod = (reminderMethodSelect && reminderMethodSelect.value.trim() !== "") ? reminderMethodSelect.value.trim() : "None";
+          reminderMinutes = (reminderMinutesInput && reminderMinutesInput.value.trim() !== "") ? reminderMinutesInput.value.trim() : "None";
+        }
+  
         updatedEvents.push({
           Event: eventInput.value,
           Date: dateInput.value,
           Time: timeInput.value,
+          Timezone: timezone,
+          Attendees: attendees,
+          Description: description,
+          Location: location,
+          ReminderMethod: reminderMethod,
+          ReminderMinutes: reminderMinutes
         });
       });
   
@@ -234,15 +282,16 @@ document.addEventListener('DOMContentLoaded', () => {
           console.log('All events updated:', updatedEvents);
           alert('Events saved successfully!');
         });
-
-        chrome.runtime.sendMessage({ action: 'eventsConfirmed'});
-        // window.close()
+  
+        chrome.runtime.sendMessage({ action: 'eventsConfirmed' });
+        // Optionally, close the window: window.close()
       }
     });
   
     // Exit button to close or exit the popup.
     const exitBtn = document.createElement('button');
     exitBtn.textContent = 'Exit';
+    exitBtn.className = 'exit-btn';
     exitBtn.addEventListener('click', () => {
       window.close();
     });
@@ -254,5 +303,4 @@ document.addEventListener('DOMContentLoaded', () => {
     // Append the action container to the main container.
     container.appendChild(actionContainer);
   }
-
 });

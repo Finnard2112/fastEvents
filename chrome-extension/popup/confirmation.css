@@ -1,0 +1,139 @@
+/* General container styling */
+
+body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+  }
+  #screenshot {
+    max-width: 100%;
+    max-height: 80%;
+    border: 1px solid #ccc;
+    margin-bottom: 20px;
+  }
+  #info {
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+#events-container {
+    max-width: 800px;
+    margin: 20px auto;
+    font-family: Arial, sans-serif;
+  }
+  
+  /* Wrapper for all events */
+  .events-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+  
+  /* Each event entry styled as a horizontal flex container */
+  .event-entry {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    padding: 5px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #fff;
+  }
+  
+  /* Input styling for event fields */
+  .event-entry input[type="text"],
+  .event-entry input[type="email"],
+  .event-entry input[type="number"] {
+    width: 120px;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+  }
+  
+  /* Extra button styling */
+  .extra-btn {
+    padding: 5px 10px;
+    border: none;
+    background-color: #007bff;
+    color: #fff;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  
+  .extra-btn:hover {
+    background-color: #0056b3;
+  }
+  
+  /* Dropdown container styling */
+  .dropdown-container {
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+  }
+  
+  .dropdown-container .dropdown-label {
+    font-weight: bold;
+    margin-bottom: 3px;
+  }
+  
+  /* Action container for Confirm All and Exit buttons */
+  .action-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 20px;
+  }
+  
+  /* Confirm and Exit button styling */
+  .confirm-btn,
+  .exit-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 1rem;
+  }
+  
+  .confirm-btn {
+    background-color: #28a745;
+    color: #fff;
+  }
+  
+  .confirm-btn:hover {
+    background-color: #218838;
+  }
+  
+  .exit-btn {
+    background-color: #dc3545;
+    color: #fff;
+  }
+  
+  .exit-btn:hover {
+    background-color: #c82333;
+  }
+  
+  /* Screenshot image styling */
+  #screenshot {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto 20px auto;
+  }
+  
+  /* Info text styling */
+  #info {
+    text-align: center;
+    font-size: 1.1rem;
+    color: #555;
+  }
+  

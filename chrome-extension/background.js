@@ -62,8 +62,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           chrome.windows.create({
             url: chrome.runtime.getURL('popup/confirmation.html'),
             type: 'popup',
-            width: 500,
-            height: 600
+            width: 700,
+            height: 900
           }, (window) => {
             console.log('Confirmation popup opened.');
           });
