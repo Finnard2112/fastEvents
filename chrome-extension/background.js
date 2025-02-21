@@ -62,7 +62,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           chrome.windows.create({
             url: chrome.runtime.getURL('popup/confirmation.html'),
             type: 'popup',
-            width: 700,
+            width: 900,
             height: 900
           }, (window) => {
             console.log('Confirmation popup opened.');
@@ -206,12 +206,15 @@ function parseDateTime(dateStr, timeStr) {
 }
 
 // Helper to format date for Google Calendar API
-function formatCalendarDateTime(date) {
+function formatCalendarDateTime(date, timezone) {
   const pad = n => n.toString().padStart(2, '0');
+  if (timezone === "None") {
+    timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+  }
   return {
     dateTime: `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T` +
               `${pad(date.getHours())}:${pad(date.getMinutes())}:00`,
-    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+    timeZone: timezone
   };
 }
 
@@ -226,14 +229,49 @@ async function addToGoogleCalendar(events) {
           const startDate = parseDateTime(event.Date, event.Time);
           const endDate = new Date(startDate.getTime() + 3600000); // +1 hour
 
+          // Summary
+          const summary = event.Event && event.Event.trim() !== "" 
+          ? event.Event 
+          : "No Name Event";
+
           const eventBody = {
-            summary: event.Event,
-            start: formatCalendarDateTime(startDate),
-            end: formatCalendarDateTime(endDate),
-            visibility: "public"
+            summary: summary,
+            start: formatCalendarDateTime(startDate, event.Timezone),
+            end: formatCalendarDateTime(endDate, event.Timezone),
+            visibility: "public",
           };
 
-          console.log(eventBody)
+          // Assumes event.Attendees is already an array of objects in the format: [{email: "example@example.com"}, ...]
+          if (event.Attendees && Array.isArray(event.Attendees) && event.Attendees.length > 0) {
+            eventBody.attendees = event.Attendees;
+          }
+
+          // Add description if it's not "None"
+          if (event.Description && event.Description !== "None") {
+            eventBody.description = event.Description;
+          }
+
+          // Add location if it's not "None"
+          if (event.Location && event.Location !== "None") {
+            eventBody.location = event.Location;
+          }
+
+          // Add reminders if both fields are provided and not "None"
+          if (event.ReminderMethod && event.ReminderMethod !== "None" &&
+              event.ReminderMinutes && event.ReminderMinutes !== "None") {
+            eventBody.reminders = {
+              useDefault: false,
+              overrides: [
+                {
+                  method: event.ReminderMethod,
+                  minutes: parseInt(event.ReminderMinutes, 10)
+                }
+              ]
+            };
+          }
+
+          console.log(eventBody);
+
 
           const response = await fetch(
             'https://www.googleapis.com/calendar/v3/calendars/primary/events',
