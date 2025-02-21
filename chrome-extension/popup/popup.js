@@ -15,6 +15,47 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // Quick Add Event button event handler using OAuth only
+  document.getElementById('quick-add-btn').addEventListener('click', () => {
+    const eventText = document.getElementById('quick-add-event').value.trim();
+    if (!eventText) {
+      alert('Please enter an event description.');
+      return;
+    }
+
+    // Use chrome.identity.getAuthToken to retrieve an OAuth token
+    chrome.identity.getAuthToken({ interactive: true }, (token) => {
+      if (chrome.runtime.lastError || !token) {
+        console.error(chrome.runtime.lastError);
+        alert('Failed to get auth token.');
+        return;
+      }
+      // Send the quickAdd request to Google Calendar
+      fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/quickAdd?text=${encodeURIComponent(eventText)}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log('Event added:', data);
+          alert('Event added successfully!');
+          window.close()
+        })
+        .catch(error => {
+          console.error('Error adding event:', error);
+          alert('Failed to add event.');
+        });
+    });
+  });
+
   // Start Selection button event handler
   document.getElementById('startSelection').addEventListener('click', () => {
     // Retrieve the API key before proceeding.
