@@ -1,126 +1,194 @@
-/* Google Calendar-inspired styles */
-:root {
-    --gcal-blue: #1a73e8;
-    --gcal-blue-hover: #1557b0;
-    --gcal-background: #f8f9fa;
-    --gcal-text: #202124;
-    --gcal-border: #dadce0;
-  }
-  
-  /* Base styles */
-  * {
-    box-sizing: border-box;
+/* General Reset */
+body {
     margin: 0;
     padding: 0;
+    font-family: 'Arial', sans-serif;
+    background-color: #ffffff;
+    color: #333;
+    min-width: 300px;
   }
   
-  body {
-    font-family: 'Google Sans', 'Roboto', Arial, sans-serif;
-    background: var(--gcal-background);
-    color: var(--gcal-text);
-    font-size: 14px;
-    min-width: 280px;
-  }
-  
-  .popup-container {
-    padding: 16px;
+  /* Container */
+  .container {
+    padding: 1rem;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 1rem;
   }
   
-  /* Header styles */
-  .calendar-header {
+  /* Header */
+  .app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  
+  .logo-wrapper {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid var(--gcal-border);
+    gap: 8px;
   }
   
-  .calendar-header h1 {
-    font-size: 18px;
-    font-weight: 500;
-    color: var(--gcal-text);
-  }
-  
-  .header-icon {
+  .logo {
     width: 24px;
     height: 24px;
   }
   
-  /* Button styles */
-  .button-group {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-top: 16px;
+  .app-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+    color: #4285f4;
   }
   
-  .gcal-button {
+  .open-calendar {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+  }
+  
+  .open-calendar:hover {
+    background-color: #f0f0f0;
+  }
+  
+  /* Description */
+  .description {
+    text-align: center;
+    color: #666;
+    margin: 0.5rem 0;
+  }
+  
+  /* Buttons */
+  .primary-btn {
+    background: #4285f4;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 24px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    width: 100%;
+  }
+  
+  .primary-btn:hover {
+    background: #357abd;
+  }
+  
+  .secondary-btn {
+    background: #f8f9fa;
+    color: #333;
+    padding: 8px 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: 24px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .secondary-btn:hover {
+    background: #e0e0e0;
+  }
+  
+  /* Quick Add Section */
+  .quick-add-section {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1rem 0;
+  }
+  
+  .section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem 0;
+    color: #4285f4;
+  }
+  
+  .example-text {
+    font-size: 0.875rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+  }
+  
+  .quick-add-input {
+    width: calc(100% - 16px);
+    height: 60px;
+    padding: 8px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    resize: none;
+    margin-bottom: 0.5rem;
+  }
+  
+  /* API Key Section */
+  .api-key-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 1rem 0;
+  }
+  
+  .api-key-section label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #4285f4;
+  }
+  
+  .api-key-input-wrapper {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 12px 16px;
+  }
+  
+  .api-key-input-wrapper input {
+    padding: 8px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    flex: 1;
+  }
+  
+  .reveal-btn {
+    background: none;
     border: none;
-    border-radius: 24px;
-    font-weight: 500;
+    font-size: 1rem;
     cursor: pointer;
-    transition: all 0.2s ease;
-    width: 100%;
-    text-align: left;
+    padding: 8px;
+    border-radius: 50%;
+    transition: background-color 0.2s;
   }
   
-  .gcal-button.primary {
-    background: var(--gcal-blue);
-    color: white;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+  .reveal-btn:hover {
+    background-color: #f0f0f0;
   }
   
-  .gcal-button.primary:hover {
-    background: var(--gcal-blue-hover);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.16);
-  }
-  
-  .gcal-button.secondary {
-    background: white;
-    color: var(--gcal-blue);
-    border: 1px solid var(--gcal-border);
-  }
-  
-  .gcal-button.secondary:hover {
-    background: #f8f9fe;
-    border-color: var(--gcal-blue);
-  }
-  
-  .button-icon {
-    font-size: 16px;
-  }
-  
-  /* Text styles */
-  .instruction-text {
+  /* Footer */
+  .footer {
     text-align: center;
-    color: #5f6368;
-    line-height: 1.5;
-    margin-bottom: 16px;
-    text-align: center;
+    font-size: 0.75rem;
+    color: #666;
+    margin-top: 1rem;
   }
   
-  /* Footer styles */
-  .gcal-footer {
-    padding-top: 16px;
-    border-top: 1px solid var(--gcal-border);
-    text-align: center;
+  .save-key {
+    font-family: monospace;
+    margin-bottom: 0.25rem;
   }
   
-  .brand-text {
-    font-size: 12px;
-    color: #5f6368;
-    font-weight: 400;
+  .separator {
+    border-top: 1px solid #e0e0e0;
+    margin: 0.5rem 0;
   }
   
-  /* Loading state */
-  .gcal-button:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
+  .powered-by {
+    font-style: italic;
+    color: #4285f4;
   }

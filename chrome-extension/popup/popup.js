@@ -1,17 +1,38 @@
 document.addEventListener('DOMContentLoaded', () => {
+  const apiKeyInput = document.getElementById('gemini-api-key');
+  const revealButton = document.getElementById('reveal-api-key');
+  let isKeyVisible = false;
+
   // Retrieve and display the stored Gemini API key (if any)
   chrome.storage.local.get(['geminiApiKey'], (data) => {
-    const apiKeyInput = document.getElementById('gemini-api-key');
     if (data.geminiApiKey) {
-      apiKeyInput.value = data.geminiApiKey;
+      apiKeyInput.value = '*'.repeat(data.geminiApiKey.length); // Mask the key
     }
   });
 
   // Save button event handler for the API key
   document.getElementById('save-api-key').addEventListener('click', () => {
-    const apiKey = document.getElementById('gemini-api-key').value.trim();
+    const apiKey = apiKeyInput.value.trim();
+    if (!apiKey) {
+      alert('Please enter a valid API key.');
+      return;
+    }
     chrome.storage.local.set({ geminiApiKey: apiKey }, () => {
       console.log('Gemini API key saved:', apiKey);
+      apiKeyInput.value = '*'.repeat(apiKey.length); // Mask the key after saving
+      isKeyVisible = false;
+      apiKeyInput.type = 'password';
+    });
+  });
+
+  // Reveal button event handler
+  revealButton.addEventListener('click', () => {
+    chrome.storage.local.get(['geminiApiKey'], (data) => {
+      if (data.geminiApiKey) {
+        isKeyVisible = !isKeyVisible;
+        apiKeyInput.value = isKeyVisible ? data.geminiApiKey : '*'.repeat(data.geminiApiKey.length);
+        apiKeyInput.type = isKeyVisible ? 'text' : 'password';
+      }
     });
   });
 
@@ -87,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
           console.log('Scripts injected successfully.');
           chrome.tabs.sendMessage(currentTab.id, { action: 'startSelection' });
-          // window.close()
+          window.close()
         });
       });
     });
@@ -97,3 +118,4 @@ document.addEventListener('DOMContentLoaded', () => {
     window.open('https://calendar.google.com/', '_blank');
   });
 });
+
