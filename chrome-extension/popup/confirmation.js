@@ -323,7 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
           });
     
           chrome.runtime.sendMessage({ action: 'eventsConfirmed' });
-          // Optionally, close the window: window.close()
+          window.close()
         }
       });
 

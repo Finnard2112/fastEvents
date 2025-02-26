@@ -1,12 +1,18 @@
 document.addEventListener('DOMContentLoaded', () => {
   const apiKeyInput = document.getElementById('gemini-api-key');
   const revealButton = document.getElementById('reveal-api-key');
+  const getKeyButton = document.getElementById('get-api-key');
   let isKeyVisible = false;
+
+  getKeyButton.addEventListener('click', () => {
+    window.open('https://aistudio.google.com/apikey', '_blank');
+  });
 
   // Retrieve and display the stored Gemini API key (if any)
   chrome.storage.local.get(['geminiApiKey'], (data) => {
     if (data.geminiApiKey) {
-      apiKeyInput.value = '*'.repeat(data.geminiApiKey.length); // Mask the key
+      apiKeyInput.value = data.geminiApiKey;  // Store the actual key
+      apiKeyInput.type = 'password';          // Mask it visually
     }
   });
 
@@ -19,21 +25,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     chrome.storage.local.set({ geminiApiKey: apiKey }, () => {
       console.log('Gemini API key saved:', apiKey);
-      apiKeyInput.value = '*'.repeat(apiKey.length); // Mask the key after saving
-      isKeyVisible = false;
+      // Ensure the key is still masked after saving
       apiKeyInput.type = 'password';
+      isKeyVisible = false;
     });
   });
 
   // Reveal button event handler
   revealButton.addEventListener('click', () => {
-    chrome.storage.local.get(['geminiApiKey'], (data) => {
-      if (data.geminiApiKey) {
-        isKeyVisible = !isKeyVisible;
-        apiKeyInput.value = isKeyVisible ? data.geminiApiKey : '*'.repeat(data.geminiApiKey.length);
-        apiKeyInput.type = isKeyVisible ? 'text' : 'password';
-      }
-    });
+    // Toggle between showing and hiding the API key
+    isKeyVisible = !isKeyVisible;
+    apiKeyInput.type = isKeyVisible ? 'text' : 'password';
   });
 
   // Quick Add Event button event handler using OAuth only
@@ -108,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
           console.log('Scripts injected successfully.');
           chrome.tabs.sendMessage(currentTab.id, { action: 'startSelection' });
-          window.close()
+          // window.close()
         });
       });
     });

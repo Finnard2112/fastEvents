@@ -100,7 +100,6 @@ body {
   .quick-add-section {
     background: #f8f9fa;
     border-radius: 8px;
-    padding: 1rem;
     margin: 1rem 0;
   }
   
@@ -132,7 +131,6 @@ body {
   .api-key-section {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
     margin: 1rem 0;
   }
   
@@ -180,7 +178,6 @@ body {
   
   .save-key {
     font-family: monospace;
-    margin-bottom: 0.25rem;
   }
   
   .separator {
