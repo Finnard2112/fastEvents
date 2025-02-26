@@ -26,8 +26,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderEvents(eventsArray) {
     const container = document.getElementById('events-container');
     container.innerHTML = ''; // Clear previous content
-
-    console.log(eventsArray);
   
     // Create a wrapper for the events list
     const eventsWrapper = document.createElement('div');

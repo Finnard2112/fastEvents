@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
           console.log('Scripts injected successfully.');
           chrome.tabs.sendMessage(currentTab.id, { action: 'startSelection' });
-          // window.close()
+          window.close()
         });
       });
     });
