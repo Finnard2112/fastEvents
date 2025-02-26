@@ -24,7 +24,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     chrome.storage.local.set({ geminiApiKey: apiKey }, () => {
-      console.log('Gemini API key saved:', apiKey);
       // Ensure the key is still masked after saving
       apiKeyInput.type = 'password';
       isKeyVisible = false;
@@ -68,12 +67,10 @@ document.addEventListener('DOMContentLoaded', () => {
           return response.json();
         })
         .then(data => {
-          console.log('Event added:', data);
           alert('Event added successfully!');
           window.close()
         })
         .catch(error => {
-          console.error('Error adding event:', error);
           alert('Failed to add event.');
         });
     });
@@ -97,7 +94,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const currentTab = tabs[0];
     
-        console.log(currentTab);
     
         chrome.scripting.executeScript({
           target: { tabId: currentTab.id },

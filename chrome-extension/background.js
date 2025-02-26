@@ -13,7 +13,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         // Process image with Gemini using the provided data URL
         const events = await processImageWithGemini(screenshotData);
 
-        console.log(events)
 
         chrome.storage.local.set({ gemEvents: events }, () => {
 
@@ -51,8 +50,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         if (data.gemEvents) {
           let events = data.gemEvents;
           const res = await addToGoogleCalendar(events);
-          console.log("Calendar response")
-          console.log(res)
         } else {
           console.log("No Events found");
         }
@@ -66,8 +63,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 function parseJsonSafely(responseText) {
   try {
     const parsed = JSON.parse(responseText);
-    console.log("parsing JSON safely")
-    console.log(parsed)
     return parsed;
   } catch (error) {
       // Check if the error is a SyntaxError and if the error message contains "Unexpected token 'H'"
@@ -101,8 +96,6 @@ async function processImageWithGemini(base64Image) {
   const formattedDate = today.toLocaleDateString('en-US');
 
   const GEMINI_API_KEY = await getGeminiApiKey();
-  console.log('This is api key');
-  console.log(GEMINI_API_KEY);
   const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
   const instructionText = `Extract any event details from the provided text string that is extracted via OCR from an image of text messages; order them from soonest to latest in terms of date and time, then return them in the following JSON format: \`[{{ "Event": "...", "Time": "HH:MM AM/PM", "Date": "MM/DD/YYYY" }}]\`. Do not include any additional text, headers, explanations, or formatting; output only the JSON array. Identify events as any activity or occasion tied to a specific time and/or date, make sure the date is correct (for example, 'tomorrow' should give the date of tomorrow). Today's date is ${formattedDate}. Extract clear event descriptions —e.g., 'Meeting with Alex')— standardize time formats to 12-hour, and date formats to 'MM/DD/YYYY.' If time or date is missing, leave the field blank. Ignore unrelated or irrelevant text, and ensure multiple events are output as separate entries in the JSON array. If no events are found, return an empty array (\`[]\`). Maintain consistent formatting and provide complete details whenever possible.`;
 
@@ -138,7 +131,6 @@ async function processImageWithGemini(base64Image) {
     return parseJsonSafely(jsonString);
   } catch (error) {
     console.error('Gemini API Error:', error);
-    console.log(response)
     throw new Error('Failed to process image with Gemini');
   }
 }
@@ -198,7 +190,6 @@ async function addToGoogleCalendar(events) {
       try {
         for (const event of events) {
 
-          console.log(event)
           const startDate = parseDateTime(event.Date, event.Time);
           const endDate = new Date(startDate.getTime() + 3600000); // +1 hour
 
@@ -243,7 +234,6 @@ async function addToGoogleCalendar(events) {
             };
           }
 
-          console.log(eventBody);
 
 
           const response = await fetch(

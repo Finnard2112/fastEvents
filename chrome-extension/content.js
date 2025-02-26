@@ -111,7 +111,6 @@
     overlay.removeEventListener('mouseup', finalizeSelectionArea);
     
     const rect = selectionBox.getBoundingClientRect();
-    console.log("finalize3", rect)
     
     // Now, remove the overlay
     document.body.removeChild(overlay);
@@ -123,7 +122,6 @@
         height: rect.height
     };
 
-    console.log('Selected region options:', options);
 
     // Use html2canvas to capture the selected region
     html2canvas(document.body, {
