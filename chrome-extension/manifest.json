@@ -44,7 +44,7 @@
     "_execute_action": {
       "suggested_key": {
         "default": "Ctrl+Shift+E",
-        "mac": "Cmd+Shift+E"
+        "mac": "Command+Shift+E"
       }
     }
   }

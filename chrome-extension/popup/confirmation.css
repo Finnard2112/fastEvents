@@ -59,18 +59,32 @@ body {
   }
   
   /* Extra button styling */
-  .extra-btn {
+  .delete-btn {
     padding: 5px 10px;
     border: none;
-    background-color: #007bff;
+    background-color: red;
     color: #fff;
     border-radius: 3px;
     cursor: pointer;
   }
   
-  .extra-btn:hover {
-    background-color: #0056b3;
+  .delete-btn:hover {
+    background-color: #7a020e;
   }
+
+    /* Extra button styling */
+    .extra-btn {
+      padding: 5px 10px;
+      border: none;
+      background-color: #007bff;
+      color: #fff;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+    
+    .extra-btn:hover {
+      background-color: #0056b3;
+    }
   
   /* Dropdown container styling */
   .dropdown-container {
@@ -143,4 +157,9 @@ body {
 
   .hidden {
     display: none !important;
+  }
+
+  .no-event-msg {
+    text-align: center;
+    color: #888;
   }

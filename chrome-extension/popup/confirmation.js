@@ -34,7 +34,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (eventsArray.length == 0) {
       const noEvent = document.createElement('h1');
       noEvent.innerHTML = "No event found";
-      container.appendChild(eventsWrapper);
+      noEvent.className = 'no-event-msg';
+      container.appendChild(noEvent);
 
       // Exit button to close or exit the popup.
       const exitBtn = document.createElement('button');
@@ -71,6 +72,17 @@ document.addEventListener('DOMContentLoaded', () => {
         timeInput.type = 'text';
         timeInput.value = eventObj.Time || '';
         timeInput.placeholder = 'HH:MM';
+
+        // Create the delete button
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = 'x';
+        deleteBtn.className = 'delete-btn';
+        deleteBtn.addEventListener('click', () => {
+          // Remove the event from the eventsArray
+          eventsArray.splice(index, 1);
+          // Re-render the events list with the updated array
+          renderEvents(eventsArray);
+        });
     
         // Create an additional button on the right for this event
         const extraBtn = document.createElement('button');
@@ -209,6 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
         eventEntry.appendChild(eventInput);
         eventEntry.appendChild(dateInput);
         eventEntry.appendChild(timeInput);
+        eventEntry.appendChild(deleteBtn);
         eventEntry.appendChild(extraBtn);
     
         eventsWrapper.appendChild(eventEntry);
