@@ -4,13 +4,18 @@ Simplify your schedule with FastEvents! This Chrome extension makes adding event
 
 ## Setup (very quick)
 
-After Installation, Click "Need an API key," which will take you to Google Gemini's website. Here, click "Get API Key" and "Create API Key."
+After Installation, Click "Need an API key," which will take you to Google Gemini's website. Here, click "Get API Key" and/or "Create API Key."
+<img width="1041" alt="screenshot 0007-03-01 at 15 40 07" src="https://github.com/user-attachments/assets/8cb7cf2a-788f-4065-af0f-7a423f0f853c" />
+
 
 Select "Gemini API" as your "project." Then copy and paste it into the extention and click "Save Key". 
+<img width="451" alt="screenshot 0007-03-01 at 15 40 30" src="https://github.com/user-attachments/assets/e0497825-5f30-4864-ac3b-38e200cb5198" />
 
 That's all! You are done. Your key will be stored locally.
 
 ## Usage
+
+<img width="272" alt="Extension window" src="https://github.com/user-attachments/assets/2e58e6d4-bb89-4f42-b23a-2f229fd359d2" />
 
 ### Screen Shot
 
