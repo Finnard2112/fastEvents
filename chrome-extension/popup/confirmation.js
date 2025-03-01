@@ -330,14 +330,12 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(updatedEvents)
     
         if (valid) {
-          // Update storage with the updated events array.
           chrome.storage.local.set({ gemEvents: updatedEvents }, () => {
             console.log('All events updated:', updatedEvents);
-            alert('Events saved successfully!');
+            alert('Events saved successfully!'); // Blocks until user dismisses it.
+            chrome.runtime.sendMessage({ action: 'eventsConfirmed' });
+            window.close();
           });
-    
-          chrome.runtime.sendMessage({ action: 'eventsConfirmed' });
-          window.close()
         }
       });
 
