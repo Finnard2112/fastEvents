@@ -242,11 +242,13 @@ document.addEventListener('DOMContentLoaded', () => {
     
           if (!dateRegex.test(dateInput.value)) {
             alert('One or more events have an invalid date format. Please use MM/DD/YYYY.');
+            console.log("One or more events have an invalid date format. Please use MM/DD/YYYY.")
             valid = false;
             return;
           }
           if (!timeRegex.test(timeInput.value)) {
             alert('One or more events have an invalid time format. Please use HH:MM (24-hour) or 12-hour format with AM/PM.');
+            console.log("One or more events have an invalid time format. Please use HH:MM (24-hour) or 12-hour format with AM/PM.")
             valid = false;
             return;
           }
@@ -286,6 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
               for (let email of emails) {
                 if (!emailRegex.test(email)) {
                   alert(`Invalid email detected: ${email}. Please enter valid emails separated by commas.`);
+                  console.log(`Invalid email detected: ${email}. Please enter valid emails separated by commas.`)
                   valid = false;
                   return;
                 }
@@ -298,8 +301,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
           }
   
-  
-    
           updatedEvents.push({
             Event: eventInput.value,
             Date: dateInput.value,
@@ -312,6 +313,8 @@ document.addEventListener('DOMContentLoaded', () => {
             ReminderMinutes: reminderMinutes
           });
         });
+
+        console.log(updatedEvents)
     
         if (valid) {
           // Update storage with the updated events array.
