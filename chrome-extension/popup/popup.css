@@ -128,6 +128,12 @@ body {
   }
   
   /* API Key Section */
+  
+  .api-but-space {
+    padding: 10px;
+    margin-top: 0.5em;
+  }
+
   .api-key-section {
     display: flex;
     flex-direction: column;
@@ -147,11 +153,13 @@ body {
   }
   
   .api-key-input-wrapper input {
-    padding: 8px;
+    padding: 10px;
     border: 1px solid #e0e0e0;
     border-radius: 8px;
     font-size: 0.75rem;
     flex: 1;
+    margin-top: 1em;
+    margin-bottom: 0.5em
   }
   
   .reveal-btn {
