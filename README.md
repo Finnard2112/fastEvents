@@ -5,11 +5,13 @@ Simplify your schedule with FastEvents! This Chrome extension makes adding event
 ## Setup (very quick)
 
 After Installation, Click "Need an API key," which will take you to Google Gemini's website. Here, click "Get API Key" and/or "Create API Key."
-<img width="1041" alt="screenshot 0007-03-01 at 15 40 07" src="https://github.com/user-attachments/assets/8cb7cf2a-788f-4065-af0f-7a423f0f853c" />
+
+<img width="841" alt="Gemini Page" src="https://github.com/user-attachments/assets/8cb7cf2a-788f-4065-af0f-7a423f0f853c" />
 
 
 Select "Gemini API" as your "project." Then copy and paste it into the extention and click "Save Key". 
-<img width="451" alt="screenshot 0007-03-01 at 15 40 30" src="https://github.com/user-attachments/assets/e0497825-5f30-4864-ac3b-38e200cb5198" />
+
+<img width="451" alt="Get Gemini Key" src="https://github.com/user-attachments/assets/e0497825-5f30-4864-ac3b-38e200cb5198" />
 
 That's all! You are done. Your key will be stored locally.
 
@@ -34,7 +36,9 @@ Instead of screenshotting the message, paste it here, and you will be taken to t
 
 ### Confirmation Page
 
-Here, you can edit your event(s). Adjust timings, date, ect. Fill in any empty Date/Time fields. (Smart filling coming soon).
+Here, you can edit your event(s). Adjust timings, date, ect. 
+
+**Fill in any empty Date/Time fields**. (Smart filling coming soon).
 
 (You may also invite others and it will show up in the calendar for confirmation too!)
 
