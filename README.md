@@ -41,5 +41,6 @@ Here, you can edit your event(s). Adjust timings, date, ect. Fill in any empty D
 ## Shortcuts
 
 Windows: Open Extension Window: Ctrl + Shift + E
+
 Mac: Open Extension Window: Ctrl + Shift + U
 Enter screenshot: Coming Soon!
