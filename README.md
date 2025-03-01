@@ -4,7 +4,7 @@ Simplify your schedule with FastEvents! This Chrome extension makes adding event
 
 ## Setup (Youtube Overview)
 
-[![FastEvent setup guide](https://img.youtube.com/vi/yZX1OLRJInc/0.jpg)](https://www.youtube.com/watch?v=YOUTUBE_VIDEO_ID_HERE)
+[![FastEvent setup guide](https://img.youtube.com/vi/yZX1OLRJInc/0.jpg)](https://www.youtube.com/watch?v=yZX1OLRJInc)
 
 
 
