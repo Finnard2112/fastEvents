@@ -109,6 +109,7 @@
     const overlay = document.getElementById('screenshot-overlay');
     overlay.removeEventListener('mousemove', resizeSelectionArea);
     overlay.removeEventListener('mouseup', finalizeSelectionArea);
+    document.removeEventListener('keydown', onKeyDown);
     
     const rect = selectionBox.getBoundingClientRect();
     

@@ -70,11 +70,12 @@ function parseJsonSafely(responseText) {
         const match = responseText.match(/\[.*\]/s);
         if (match && match[0]) {
           return JSON.parse(match[0]);
-      } else {
-        // If it's a different error, rethrow it or handle it as needed
-        throw error;
+        } else {
+          // If it's a different error, rethrow it or handle it as needed
+          throw error;
+        }
       }
-    }
+      throw error;
   }
 }
 
@@ -96,10 +97,17 @@ async function processImageWithGemini(base64Image) {
   const formattedDate = today.toLocaleDateString('en-US');
 
   const GEMINI_API_KEY = await getGeminiApiKey();
+
+
   const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
   const instructionText = `Extract any event details from the provided text string that is extracted via OCR from an image of text messages; order them from soonest to latest in terms of date and time, then return them in the following JSON format: \`[{{ "Event": "...", "Time": "HH:MM AM/PM", "Date": "MM/DD/YYYY" }}]\`. Do not include any additional text, headers, explanations, or formatting; output only the JSON array. Identify events as any activity or occasion tied to a specific time and/or date, make sure the date is correct (for example, 'tomorrow' should give the date of tomorrow). Today's date is ${formattedDate}. Extract clear event descriptions —e.g., 'Meeting with Alex')— standardize time formats to 12-hour, and date formats to 'MM/DD/YYYY.' If time or date is missing, leave the field blank. Ignore unrelated or irrelevant text, and ensure multiple events are output as separate entries in the JSON array. If no events are found, return an empty array (\`[]\`). Maintain consistent formatting and provide complete details whenever possible.`;
 
   try {
+
+    if (!GEMINI_API_KEY || GEMINI_API_KEY.trim() === '') {
+      throw new Error('Missing or invalid Gemini API key');
+    }
+
     const response = await fetch(`${url}?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -120,17 +128,43 @@ async function processImageWithGemini(base64Image) {
       })
     });
 
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`Gemini API error (${response.status}): ${errorData.error?.message || response.statusText}`);
+    }
+    
     
     const data = await response.json();
+
+    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts) {
+      throw new Error('Unexpected response format from Gemini API');
+    }
+    
     const jsonString = data.candidates[0].content.parts[0].text
       .replace(/```json/g, '')
       .replace(/```/g, '')
       .trim();
+
+    if (!jsonString || jsonString.trim() === '') {
+      return []; // Return empty array if no events found
+    }
+    
+    const parsedEvents = parseJsonSafely(jsonString);
+    if (!Array.isArray(parsedEvents)) {
+      console.warn('Parsed events is not an array, returning empty array');
+      return [];
+    }
+    
       
-    return parseJsonSafely(jsonString);
+    return parsedEvents;
   } catch (error) {
     console.error('Gemini API Error:', error);
+    chrome.notifications.create({
+      type: "basic",
+      iconUrl: 'icons/icon-48.png', // Ensure you have an icon in your extension
+      title: 'Fast Events Error',
+      message: `Failed to process image: ${error.message}`
+    });
     throw new Error('Failed to process image with Gemini');
   }
 }
