@@ -16,19 +16,71 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Save button event handler for the API key
-  document.getElementById('save-api-key').addEventListener('click', () => {
-    const apiKey = apiKeyInput.value.trim();
-    if (!apiKey) {
-      alert('Please enter a valid API key.');
-      return;
+async function validateGeminiApiKey(apiKey) {
+  try {
+    // Simple validation request to Gemini API
+    const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
+    const response = await fetch(url);
+    
+    if (response.status === 200) {
+      return { valid: true };
+    } else {
+      const errorData = await response.json();
+      return { 
+        valid: false, 
+        error: errorData.error?.message || `API returned status ${response.status}`
+      };
     }
-    chrome.storage.local.set({ geminiApiKey: apiKey }, () => {
-      // Ensure the key is still masked after saving
-      apiKeyInput.type = 'password';
-      isKeyVisible = false;
-    });
-  });
+  } catch (error) {
+    return { 
+      valid: false, 
+      error: error.message || "Network error validating API key"
+    };
+  }
+}
+
+// Then replace the save-api-key click handler in popup.js
+document.getElementById('save-api-key').addEventListener('click', async () => {
+  const apiKey = apiKeyInput.value.trim();
+  if (!apiKey) {
+    alert('Please enter a valid API key.');
+    return;
+  }
+  
+  // Show loading state
+  const saveButton = document.getElementById('save-api-key');
+  const originalText = saveButton.textContent;
+  saveButton.textContent = 'Validating...';
+  saveButton.disabled = true;
+  
+  try {
+    // Validate the API key directly
+    const validation = await validateGeminiApiKey(apiKey);
+    
+    if (validation.valid) {
+      chrome.storage.local.set({ geminiApiKey: apiKey }, () => {
+        // Success feedback
+        saveButton.textContent = 'Saved!';
+        setTimeout(() => {
+          saveButton.textContent = originalText;
+          saveButton.disabled = false;
+          
+          // Ensure the key is still masked after saving
+          apiKeyInput.type = 'password';
+          isKeyVisible = false;
+        }, 1500);
+      });
+    } else {
+      alert(`API key validation failed: ${validation.error}`);
+      saveButton.textContent = originalText;
+      saveButton.disabled = false;
+    }
+  } catch (error) {
+    alert(`Error validating API key: ${error.message}`);
+    saveButton.textContent = originalText;
+    saveButton.disabled = false;
+  }
+});
 
   // Reveal button event handler
   revealButton.addEventListener('click', () => {

@@ -62,20 +62,34 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 function parseJsonSafely(responseText) {
   try {
-    const parsed = JSON.parse(responseText);
-    return parsed;
+    return JSON.parse(responseText);
   } catch (error) {
-      // Check if the error is a SyntaxError and if the error message contains "Unexpected token 'H'"
-      if (error instanceof SyntaxError && error.message.includes("Unexpected token 'H'")) {
-        const match = responseText.match(/\[.*\]/s);
-        if (match && match[0]) {
-          return JSON.parse(match[0]);
-        } else {
-          // If it's a different error, rethrow it or handle it as needed
-          throw error;
-        }
+    console.error("JSON parsing error:", error.message);
+    
+    // Try to extract JSON array from text (handles cases with explanatory text around the JSON)
+    const arrayMatch = responseText.match(/\[.*\]/s);
+    if (arrayMatch && arrayMatch[0]) {
+      try {
+        return JSON.parse(arrayMatch[0]);
+      } catch (nestedError) {
+        console.error("Failed to parse extracted array:", nestedError.message);
       }
-      throw error;
+    }
+    
+    // Try to handle common formatting issues
+    const cleanedText = responseText
+      .replace(/```json/g, '')
+      .replace(/```/g, '')
+      .replace(/\n/g, ' ')
+      .trim();
+      
+    try {
+      return JSON.parse(cleanedText);
+    } catch (finalError) {
+      console.error("All parsing attempts failed");
+      // Return empty array as fallback
+      return [];
+    }
   }
 }
 
@@ -159,13 +173,21 @@ async function processImageWithGemini(base64Image) {
     return parsedEvents;
   } catch (error) {
     console.error('Gemini API Error:', error);
-    chrome.notifications.create({
-      type: "basic",
-      iconUrl: 'icons/icon-48.png', // Ensure you have an icon in your extension
-      title: 'Fast Events Error',
-      message: `Failed to process image: ${error.message}`
+    
+    // Store the error in local storage for the confirmation popup to display
+    chrome.storage.local.set({ 
+      geminiError: error.message || 'Failed to process image with Gemini' 
     });
-    throw new Error('Failed to process image with Gemini');
+    
+    // Still open the confirmation popup to show the error
+    chrome.windows.create({
+      url: chrome.runtime.getURL('popup/confirmation.html'),
+      type: 'popup',
+      width: 900,
+      height: 900
+    });
+    
+    throw new Error('Failed to process image with Gemini: ' + error.message);
   }
 }
 

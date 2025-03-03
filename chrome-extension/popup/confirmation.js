@@ -6,6 +6,26 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Retrieve both screenshot and gemEvents from storage.
   chrome.storage.local.get(['screenshot', 'gemEvents'], (data) => {
+
+    if (data.geminiError) {
+      // Create error message element
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'error-message';
+      errorDiv.textContent = `Error processing image: ${data.geminiError}`;
+      errorDiv.style.color = 'red';
+      errorDiv.style.margin = '10px 0';
+      errorDiv.style.padding = '10px';
+      errorDiv.style.border = '1px solid red';
+      errorDiv.style.borderRadius = '5px';
+      errorDiv.style.backgroundColor = 'rgba(255, 0, 0, 0.1)';
+      
+      // Insert at the top of the container
+      document.getElementById('events-container').prepend(errorDiv);
+      
+      // Clear the error after displaying it
+      chrome.storage.local.remove('geminiError');
+    }
+    
     if (data.screenshot) {
       screenshotImg.src = data.screenshot;
     } else {
