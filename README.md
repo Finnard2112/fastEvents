@@ -46,6 +46,21 @@ Here, you can edit your event(s). Adjust timings, date, ect.
 
 [![FastEvent setup guide](https://img.youtube.com/vi/yZX1OLRJInc/0.jpg)](https://www.youtube.com/watch?v=yZX1OLRJInc)
 
+## Errors
+
+This extension won't run on "default tabs" such as settings, new tab, and urls that start with chrome://
+It should work on all normal webpages.
+
+If the confirmation goes through, but the event doesn't appear, it might be from the sometimes unreliable calendar API. 
+
+Fixes try any/a combination of: 
+
+1. Try again in a few minutes
+   
+2. Redownload the extension
+
+3. Reload your API key. 
+
 
 ## Shortcuts
 
