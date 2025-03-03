@@ -66,5 +66,5 @@ Fixes try any/a combination of:
 
 Windows: Open Extension Window: Ctrl + Shift + E
 
-Mac: Open Extension Window: Ctrl + Shift + U
+Mac: Open Extension Window: Cmd + Shift + E
 Enter screenshot: Coming Soon!
