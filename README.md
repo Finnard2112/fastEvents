@@ -38,7 +38,7 @@ Instead of screenshotting the message, paste it here, and you will be taken to t
 
 Here, you can edit your event(s). Adjust timings, date, ect. 
 
-**Fill in any empty Date/Time fields**. (Smart filling coming soon).
+**Fill in any empty Date/Time fields. Customizable event durations coming soon**. 
 
 (You may also invite others and it will show up in the calendar for confirmation too!)
 
