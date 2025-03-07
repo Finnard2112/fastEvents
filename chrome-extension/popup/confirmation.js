@@ -215,6 +215,31 @@ document.addEventListener('DOMContentLoaded', () => {
           reminderMinutesInput.type = 'number';
           reminderMinutesInput.placeholder = 'Minutes before event';
           reminderMinutesInput.min = '0';
+
+          const endDateLabel = document.createElement('label');
+          endDateLabel.textContent = 'End Date & Time: ';
+          endDateLabel.className = 'dropdown-label';
+
+          // Create end date input
+          const endDateInput = document.createElement('input');
+          endDateInput.type = 'text';
+          endDateInput.placeholder = 'MM/DD/YYYY';
+          endDateInput.pattern = '(0[1-9]|1[0-2])\\/(0[1-9]|[12]\\d|3[01])\\/\\d{4}';
+
+          // Create end time input
+          const endTimeInput = document.createElement('input');
+          endTimeInput.type = 'text';
+          endTimeInput.placeholder = 'HH:MM AM/PM';
+
+          // Create a container for end date/time to keep them on the same line
+          const endDateTimeContainer = document.createElement('div');
+          endDateTimeContainer.className = 'datetime-container';
+          endDateTimeContainer.appendChild(endDateInput);
+          endDateTimeContainer.appendChild(endTimeInput);
+
+          // Add the fields to the dropdown
+          dropdown.appendChild(endDateLabel);
+          dropdown.appendChild(endDateTimeContainer);
           
           // Append fields to dropdown container
           dropdown.appendChild(timezoneLabel);
@@ -294,7 +319,10 @@ document.addEventListener('DOMContentLoaded', () => {
             description = "None",
             location = "None",
             reminderMethod = "None",
-            reminderMinutes = "None";
+            reminderMinutes = "None",
+            endDate = "None",
+            endTime = "None";
+      
     
           if (dropdown) {
             const timezoneInput = dropdown.querySelector('input[placeholder="Enter IANA timezone"]');
@@ -303,13 +331,31 @@ document.addEventListener('DOMContentLoaded', () => {
             const locationInput = dropdown.querySelector('input[placeholder="Event location"]');
             const reminderMethodSelect = dropdown.querySelector('select');
             const reminderMinutesInput = dropdown.querySelector('input[type="number"]');
-    
+            const endDateInput = dropdown.querySelector('.datetime-container input[placeholder="MM/DD/YYYY"]');
+            const endTimeInput = dropdown.querySelector('.datetime-container input[placeholder="HH:MM AM/PM"]');
+
             timezone = (timezoneInput && timezoneInput.value.trim() !== "") ? timezoneInput.value.trim() : "None";
             description = (descriptionInput && descriptionInput.value.trim() !== "") ? descriptionInput.value.trim() : "None";
             location = (locationInput && locationInput.value.trim() !== "") ? locationInput.value.trim() : "None";
             reminderMethod = (reminderMethodSelect && reminderMethodSelect.value.trim() !== "") ? reminderMethodSelect.value.trim() : "None";
             reminderMinutes = (reminderMinutesInput && reminderMinutesInput.value.trim() !== "") ? reminderMinutesInput.value.trim() : "None";
+            endDate = (endDateInput && endDateInput.value.trim() !== "") ? endDateInput.value.trim() : "None";
+            endTime = (endTimeInput && endTimeInput.value.trim() !== "") ? endTimeInput.value.trim() : "None";
   
+            // Validate end date and time if provided
+            if (endDate !== "None" && !dateRegex.test(endDate)) {
+              alert('One or more events have an invalid end date format. Please use MM/DD/YYYY.');
+              console.log("One or more events have an invalid end date format. Please use MM/DD/YYYY.")
+              valid = false;
+              return;
+            }
+            
+            if (endTime !== "None" && !timeRegex.test(endTime)) {
+              alert('One or more events have an invalid end time format. Please use HH:MM (24-hour) or 12-hour format with AM/PM.');
+              console.log("One or more events have an invalid end time format. Please use HH:MM (24-hour) or 12-hour format with AM/PM.")
+              valid = false;
+              return;
+            }
             // Process attendees field: Verify it contains comma-separated emails
             let attendeesStr = (attendeesInput && attendeesInput.value.trim() !== "") ? attendeesInput.value.trim() : "";
             console.log("this is attendee string" + attendeesStr);
@@ -338,6 +384,8 @@ document.addEventListener('DOMContentLoaded', () => {
             Event: eventInput.value,
             Date: dateInput.value,
             Time: timeInput.value,
+            EndDate: endDate,
+            EndTime: endTime,
             Timezone: timezone, //
             Attendees: attendees,
             Description: description,

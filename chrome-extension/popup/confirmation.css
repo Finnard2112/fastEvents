@@ -163,3 +163,15 @@ body {
     text-align: center;
     color: #888;
   }
+
+  /* Add this to confirmation.css */
+.datetime-container {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.datetime-container input {
+  flex: 1;
+}

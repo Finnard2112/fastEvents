@@ -239,15 +239,23 @@ function formatCalendarDateTime(date, timezone) {
   };
 }
 
-// Usage in addToGoogleCalendar
+
 async function addToGoogleCalendar(events) {
   return new Promise((resolve, reject) => {
     chrome.identity.getAuthToken({ interactive: true }, async (token) => {
       try {
         for (const event of events) {
-
+          // Parse start date and time
           const startDate = parseDateTime(event.Date, event.Time);
-          const endDate = new Date(startDate.getTime() + 3600000); // +1 hour
+          
+          // Parse end date and time or default to start + 1 hour
+          let endDate;
+          if (event.EndDate !== "None" && event.EndTime !== "None") {
+            endDate = parseDateTime(event.EndDate, event.EndTime);
+          } else {
+            // Default to 1 hour after start time if end date/time not provided
+            endDate = new Date(startDate.getTime() + 3600000); // +1 hour
+          }
 
           // Summary
           const summary = event.Event && event.Event.trim() !== "" 
@@ -289,8 +297,6 @@ async function addToGoogleCalendar(events) {
               ]
             };
           }
-
-
 
           const response = await fetch(
             'https://www.googleapis.com/calendar/v3/calendars/primary/events',
