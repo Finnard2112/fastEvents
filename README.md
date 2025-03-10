@@ -21,14 +21,24 @@ That's all! You are done. Your key will be stored locally.
 
 ### Screen Shot
 
-Select "Create from Screenshot" on the extension while being on the tab with your message(s). 
+There are two ways to create events from screenshots:
 
-In the screenshot, include all texts containing details of the event. External information that may be caught should not affect the process, but it is best to avoid them. 
+#### 1. Standard Mode (Default)
+Select "Create from Screenshot" on the extension while being on the tab with your message(s). In the screenshot, include all texts containing details of the event. After processing, you'll be taken to the confirmation page where you can edit the event details before adding to your calendar.
 
-The screenshot might take a few seconds to load. If no confirmation page pops up after over 10 seconds, please doublecheck you API key, or remake your key.
+#### 2. QuickAdd Mode (Toggle On)
+Enable the "Use QuickAdd for screenshots" toggle under the screenshot button. This mode:
+- Takes a screenshot of your message(s)
+- Directly extracts event details and creates an event in your calendar without the confirmation page
+- Shows a notification when your event is added
+- Generally provides more reliable event creation as it uses Google Calendar's native QuickAdd feature
 
-Click ESCAPE to exit screenshot mode. 
-After the screenshot, you will be taken to the confirmation page.
+**When to use QuickAdd Mode:** 
+- For simple events where you don't need to add attendees, descriptions, or reminders
+- When you want the fastest way to add events to your calendar
+- For better reliability with Google Calendar's API
+
+The screenshot might take a few seconds to process. Click ESCAPE to exit screenshot mode.
 
 ### Quick Add
 

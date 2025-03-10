@@ -21,7 +21,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           
           if (eventText) {
             // Use QuickAdd API
-            await addToCalendarWithQuickAdd(eventText);
+            const eventData = await addToCalendarWithQuickAdd(eventText);
+            
+            // Show a success notification
+            chrome.notifications.create({
+              type: 'basic',
+              iconUrl: chrome.runtime.getURL('icons/icon-128.png'),
+              title: 'Event Added Successfully',
+              message: `Added event: "${eventData.summary}" on ${new Date(eventData.start.dateTime).toLocaleString()}`
+            });
           } else {
             throw new Error('Could not extract event text from image');
           }
@@ -61,7 +69,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             height: 900
           });
         } else {
-          alert(`Error: ${error.message || 'Failed to process image'}`);
+          // Use Chrome notifications instead of alert
+          chrome.notifications.create({
+            type: 'basic',
+            iconUrl: chrome.runtime.getURL('icons/icon-128.png'),
+            title: 'Error',
+            message: `Error: ${error.message || 'Failed to process image'}`
+          });
         }
         
         sendResponse({
@@ -106,8 +120,13 @@ async function processImageForQuickAdd(base64Image) {
   }
 
   const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
-  const instructionText = `Extract text from this image, identify any event details (event name, date, time, location), and format them as a single line text string that would be suitable for Google Calendar's Quick Add feature. The output should be a single, concise line describing the event in a natural language format. For example: "Meeting with John at Starbucks tomorrow at 3pm" or "Dentist appointment on March 15 at 10am". Today's date is ${formattedDate}. If no event is found, respond with "No event found".`;
-
+  const instructionText =  `Extract text from this image, identify any event details (event name, date, time, location), and format them as a single line text string optimized for Google Calendar's Quick Add feature. The output should be a single, concise line describing the event in a natural language format. For example: "Meeting with John Starbucks tomorrow 3pm" or "Dentist appointment March 15 10am". 
+                            Today's date is ${formattedDate}. Follow these specific formatting rules:
+                            1. Remove unnecessary prepositions like "at", "on", "in" when referring to locations, dates, or times
+                            2. Keep the event name, location, date, and time in that order when possible
+                            3. Use natural language date formats that Google Calendar understands (e.g., "tomorrow", "next Tuesday", "March 15")
+                            4. If no event is found, respond with "No event found"
+                            5. Keep the output as concise as possible while maintaining all key information`;
   try {
     const response = await fetch(`${url}?key=${GEMINI_API_KEY}`, {
       method: 'POST',
@@ -178,10 +197,22 @@ async function addToCalendarWithQuickAdd(eventText) {
         }
         
         const data = await response.json();
-        alert(`Event "${data.summary}" added successfully!`);
+        // Use Chrome notifications instead of alert
+        chrome.notifications.create({
+          type: 'basic',
+          iconUrl: chrome.runtime.getURL('icons/icon-128.png'),
+          title: 'Event Added',
+          message: `Event "${data.summary}" added successfully!`
+        });
         resolve(data);
       } catch (error) {
-        alert(`Failed to add event: ${error.message}`);
+        // Use Chrome notifications instead of alert
+        chrome.notifications.create({
+          type: 'basic',
+          iconUrl: chrome.runtime.getURL('icons/icon-128.png'),
+          title: 'Error',
+          message: `Failed to add event: ${error.message}`
+        });
         reject(error);
       }
     });
