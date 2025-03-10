@@ -197,3 +197,69 @@ body {
     font-style: italic;
     color: #4285f4;
   }
+
+  /* Toggle Switch styling */
+.screenshot-mode {
+  display: flex;
+  flex-direction: column;
+  margin: 0.5rem 0;
+  padding: 8px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.toggle-container {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+  background-color: #ccc;
+  border-radius: 20px;
+  margin-right: 8px;
+  transition: all 0.3s;
+}
+
+.toggle-switch:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  border-radius: 50%;
+  transition: all 0.3s;
+}
+
+input[type="checkbox"] {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+input[type="checkbox"]:checked + .toggle-switch {
+  background-color: #4285f4;
+}
+
+input[type="checkbox"]:checked + .toggle-switch:before {
+  transform: translateX(20px);
+}
+
+.toggle-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.toggle-description {
+  font-size: 0.75rem;
+  color: #666;
+  margin-top: 4px;
+  margin-left: 48px;
+}

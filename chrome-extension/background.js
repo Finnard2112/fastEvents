@@ -10,24 +10,60 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     
     (async () => {
       try {
-        // Process image with Gemini using the provided data URL
-        const events = await processImageWithGemini(screenshotData);
+        // Check if we should use QuickAdd mode
+        const { useQuickAddForScreenshot } = await new Promise(resolve => {
+          chrome.storage.local.get(['useQuickAddForScreenshot'], resolve);
+        });
+        
+        if (useQuickAddForScreenshot) {
+          // Process image with Gemini for QuickAdd
+          const eventText = await processImageForQuickAdd(screenshotData);
+          
+          if (eventText) {
+            // Use QuickAdd API
+            await addToCalendarWithQuickAdd(eventText);
+          } else {
+            throw new Error('Could not extract event text from image');
+          }
+        } else {
+          // Regular flow - Process image with Gemini
+          const events = await processImageWithGemini(screenshotData);
 
-
-        chrome.storage.local.set({ gemEvents: events }, () => {
-
+          chrome.storage.local.set({ gemEvents: events }, () => {
+            chrome.windows.create({
+              url: chrome.runtime.getURL('popup/confirmation.html'),
+              type: 'popup',
+              width: 900,
+              height: 900
+            }, (window) => {
+              console.log('Confirmation popup opened.');
+            });
+          });
+        }
+      } catch (error) {
+        console.error('Error processing screenshot:', error);
+        
+        // Store the error for display regardless of mode
+        chrome.storage.local.set({ 
+          geminiError: error.message || 'Failed to process image with Gemini' 
+        });
+        
+        // Only show the confirmation popup in regular mode
+        const { useQuickAddForScreenshot } = await new Promise(resolve => {
+          chrome.storage.local.get(['useQuickAddForScreenshot'], resolve);
+        });
+        
+        if (!useQuickAddForScreenshot) {
           chrome.windows.create({
             url: chrome.runtime.getURL('popup/confirmation.html'),
             type: 'popup',
             width: 900,
             height: 900
-          }, (window) => {
-            console.log('Confirmation popup opened.');
           });
-        });
-
-      } catch (error) {
-        console.error('Error processing screenshot:', error);
+        } else {
+          alert(`Error: ${error.message || 'Failed to process image'}`);
+        }
+        
         sendResponse({
           status: 'error',
           message: error.message || 'Failed to process image'
@@ -55,10 +91,102 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         }
       })();
     });
-
   }
 });
 
+// New function to process image for QuickAdd
+async function processImageForQuickAdd(base64Image) {
+  const today = new Date();
+  const formattedDate = today.toLocaleDateString('en-US');
+
+  const GEMINI_API_KEY = await getGeminiApiKey();
+
+  if (!GEMINI_API_KEY || GEMINI_API_KEY.trim() === '') {
+    throw new Error('Missing or invalid Gemini API key');
+  }
+
+  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+  const instructionText = `Extract text from this image, identify any event details (event name, date, time, location), and format them as a single line text string that would be suitable for Google Calendar's Quick Add feature. The output should be a single, concise line describing the event in a natural language format. For example: "Meeting with John at Starbucks tomorrow at 3pm" or "Dentist appointment on March 15 at 10am". Today's date is ${formattedDate}. If no event is found, respond with "No event found".`;
+
+  try {
+    const response = await fetch(`${url}?key=${GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            { text: instructionText },
+            {
+              inline_data: {
+                mime_type: "image/png",
+                data: base64Image.split(',')[1]
+              }
+            }
+          ]
+        }]
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`Gemini API error (${response.status}): ${errorData.error?.message || response.statusText}`);
+    }
+    
+    const data = await response.json();
+
+    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts) {
+      throw new Error('Unexpected response format from Gemini API');
+    }
+    
+    const eventText = data.candidates[0].content.parts[0].text.trim();
+    
+    if (!eventText || eventText === 'No event found') {
+      throw new Error('No event found in the image');
+    }
+    
+    return eventText;
+  } catch (error) {
+    console.error('Gemini API Error:', error);
+    throw new Error('Failed to process image with Gemini: ' + error.message);
+  }
+}
+
+// New function to use QuickAdd API
+async function addToCalendarWithQuickAdd(eventText) {
+  return new Promise((resolve, reject) => {
+    chrome.identity.getAuthToken({ interactive: true }, async (token) => {
+      if (chrome.runtime.lastError || !token) {
+        reject(new Error('Failed to get auth token'));
+        return;
+      }
+      
+      try {
+        const response = await fetch(
+          `https://www.googleapis.com/calendar/v3/calendars/primary/events/quickAdd?text=${encodeURIComponent(eventText)}`, 
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error?.message || `API error ${response.status}`);
+        }
+        
+        const data = await response.json();
+        alert(`Event "${data.summary}" added successfully!`);
+        resolve(data);
+      } catch (error) {
+        alert(`Failed to add event: ${error.message}`);
+        reject(error);
+      }
+    });
+  });
+}
 
 function parseJsonSafely(responseText) {
   try {
@@ -239,23 +367,15 @@ function formatCalendarDateTime(date, timezone) {
   };
 }
 
-
+// Usage in addToGoogleCalendar
 async function addToGoogleCalendar(events) {
   return new Promise((resolve, reject) => {
     chrome.identity.getAuthToken({ interactive: true }, async (token) => {
       try {
         for (const event of events) {
-          // Parse start date and time
+
           const startDate = parseDateTime(event.Date, event.Time);
-          
-          // Parse end date and time or default to start + 1 hour
-          let endDate;
-          if (event.EndDate !== "None" && event.EndTime !== "None") {
-            endDate = parseDateTime(event.EndDate, event.EndTime);
-          } else {
-            // Default to 1 hour after start time if end date/time not provided
-            endDate = new Date(startDate.getTime() + 3600000); // +1 hour
-          }
+          const endDate = new Date(startDate.getTime() + 3600000); // +1 hour
 
           // Summary
           const summary = event.Event && event.Event.trim() !== "" 
