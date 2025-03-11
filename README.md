@@ -17,7 +17,7 @@ That's all! You are done. Your key will be stored locally.
 
 ## Usage
 
-<img width="272" alt="Extension window" src="https://github.com/user-attachments/assets/2e58e6d4-bb89-4f42-b23a-2f229fd359d2" />
+<img width="236" alt="Popup Window" src="https://github.com/user-attachments/assets/2f7d95f3-e308-432e-9a79-6501d408a509" />
 
 ### Screen Shot
 
