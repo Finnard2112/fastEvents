@@ -117,6 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
         alert('Failed to get auth token.');
         return;
       }
+      
       // Send the quickAdd request to Google Calendar
       fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/quickAdd?text=${encodeURIComponent(eventText)}`, {
         method: 'POST',

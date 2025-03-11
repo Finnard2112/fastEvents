@@ -93,18 +93,137 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
+// In background.js, after processing calendar events
+function notifyUserOfResults(results) {
+  const successCount = results.successfulEvents || 0;
+  const totalCount = results.totalEvents || 0;
+  const failedCount = results.failedEvents || 0;
+  
+  console.log(`Calendar results: ${successCount}/${totalCount} events added successfully. ${failedCount} failed.`);
+  
+  // Store the detailed results for potential viewing later
+  if (results.details) {
+    chrome.storage.local.set({ 
+      calendarResults: {
+        timestamp: new Date().toISOString(),
+        summary: results,
+        details: results.details
+      }
+    });
+  }
+  
+  let message;
+  let title;
+  
+  if (successCount === totalCount) {
+    title = 'Calendar Events Added';
+    message = `All ${successCount} events were added successfully!`;
+  } else if (successCount > 0) {
+    title = 'Calendar Events';
+    message = `${successCount} of ${totalCount} events added successfully. ${failedCount} failed.`;
+  } else {
+    title = 'Calendar Error';
+    message = `Failed to add all ${totalCount} events to your calendar.`;
+  }
+  
+  const buttons = failedCount > 0 ? [{ title: 'View Details' }] : [];
+  
+  chrome.notifications.create({
+    type: 'basic',
+    iconUrl: chrome.runtime.getURL('icons/icon-128.png'),
+    title: title,
+    message: message,
+    buttons: buttons,
+    priority: 2,
+    requireInteraction: failedCount > 0 // Make the notification stay if there were errors
+  });
+}
+
+// Handle the "View Details" button click
+chrome.notifications.onButtonClicked.addListener((notificationId, buttonIndex) => {
+  if (buttonIndex === 0) { // "View Details" button
+    chrome.storage.local.get(['calendarResults'], (data) => {
+      if (data.calendarResults && data.calendarResults.details && data.calendarResults.details.errors) {
+        // Format error details for display
+        const errors = data.calendarResults.details.errors;
+        let errorMessage = "Errors encountered:\n\n";
+        
+        errors.forEach((error, index) => {
+          errorMessage += `Event: ${error.event}\n`;
+          errorMessage += `Error: ${error.error}\n\n`;
+        });
+        
+        // Open a new tab or window to display detailed errors
+        chrome.tabs.create({
+          url: `data:text/html,<html><head><title>Calendar Error Details</title></head>
+                <body style="font-family: sans-serif; padding: 20px;">
+                <h2>Calendar Error Details</h2>
+                <pre style="background: #f5f5f5; padding: 15px; border-radius: 4px;">${errorMessage}</pre>
+                </body></html>`
+        });
+      }
+    });
+  }
+});
+
+
+// In your event handler
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'eventsConfirmed') {
+    console.log('Events confirmed by user, proceeding to add to calendar');
+    
+    // Show an initial notification that we're processing
+    chrome.notifications.create({
+      type: 'basic',
+      iconUrl: chrome.runtime.getURL('icons/icon-128.png'),
+      title: 'Processing Events',
+      message: 'Adding events to your calendar...'
+    });
+    
     chrome.storage.local.get(['screenshot', 'gemEvents'], (data) => {
+      if (chrome.runtime.lastError) {
+        console.error('Storage error:', chrome.runtime.lastError);
+        chrome.notifications.create({
+          type: 'basic',
+          iconUrl: chrome.runtime.getURL('icons/icon-128.png'),
+          title: 'Error',
+          message: 'Could not retrieve event data from storage'
+        });
+        return;
+      }
+      
+      if (!data.gemEvents || data.gemEvents.length === 0) {
+        console.log("No events found in storage");
+        chrome.notifications.create({
+          type: 'basic',
+          iconUrl: chrome.runtime.getURL('icons/icon-128.png'),
+          title: 'No Events',
+          message: 'No events were found to add to calendar'
+        });
+        return;
+      }
+      
       (async () => {
-        if (data.gemEvents) {
-          let events = data.gemEvents;
-          const res = await addToGoogleCalendar(events);
-        } else {
-          console.log("No Events found");
+        try {
+          console.log(`Starting to add ${data.gemEvents.length} events to calendar`);
+          const res = await addToGoogleCalendar(data.gemEvents);
+          console.log('Calendar operation completed successfully:', res);
+          notifyUserOfResults(res);
+        } catch (error) {
+          console.error('Error adding events to calendar:', error);
+          // This notification is shown by addToGoogleCalendar on failure
+          // but we'll add a backup notification here too
+          chrome.notifications.create({
+            type: 'basic',
+            iconUrl: chrome.runtime.getURL('icons/icon-128.png'),
+            title: 'Calendar Error',
+            message: `Failed to add events: ${error.message}`
+          });
         }
       })();
     });
+    
+    return true;
   }
 });
 
@@ -350,37 +469,59 @@ async function processImageWithGemini(base64Image) {
   }
 }
 
-function parseDateTime(dateStr, timeStr) {
+// More robust date parsing example
+function parseDateTime(dateStr, timeStr, timezone = null) {
+  // Default timezone if not provided
+  const userTimezone = timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+  
+  // Parse date (MM/DD/YYYY format)
   let date;
-
-  // Parse Date (MM/DD/YYYY format or default to tomorrow)
   if (dateStr && dateStr.trim() !== '') {
     const [month, day, year] = dateStr.split('/').map(Number);
-    date = new Date(year, month - 1, day); // Months are 0-based in JS
+    if (isNaN(month) || isNaN(day) || isNaN(year)) {
+      throw new Error(`Invalid date format: ${dateStr}`);
+    }
+    // Validate month and day
+    if (month < 1 || month > 12 || day < 1 || day > 31) {
+      throw new Error(`Invalid date values: ${dateStr}`);
+    }
+    date = new Date(year, month - 1, day);
   } else {
     const today = new Date();
     date = new Date(today);
     date.setDate(today.getDate() + 1); // Default to tomorrow
   }
 
-  // Parse Time (HH:MM AM/PM or HH:MM format)
-  let hours = 9; // Default to 9 AM
-  let minutes = 0;
+  // Parse Time with more robust handling
   if (timeStr && timeStr.trim() !== '') {
     const cleanTime = timeStr.toLowerCase().trim();
-    const [timePart, period] = cleanTime.split(/(am|pm)/);
-    const [h, m] = timePart.split(':').map(Number);
-
-    hours = h || 0;
-    minutes = m || 0;
-
-    // Convert to 24-hour format
-    if (period === 'pm' && hours < 12) hours += 12;
-    if (period === 'am' && hours === 12) hours = 0;
+    
+    // Different time patterns
+    const time24HourPattern = /^([01]?[0-9]|2[0-3]):([0-5][0-9])$/;
+    const time12HourPattern = /^(0?[1-9]|1[0-2]):([0-5][0-9])\s?(am|pm)$/i;
+    
+    let hours = 9; // Default to 9 AM
+    let minutes = 0;
+    
+    if (time24HourPattern.test(cleanTime)) {
+      const [h, m] = cleanTime.split(':').map(Number);
+      hours = h;
+      minutes = m;
+    } else if (time12HourPattern.test(cleanTime)) {
+      const match = cleanTime.match(time12HourPattern);
+      hours = parseInt(match[1], 10);
+      minutes = parseInt(match[2], 10);
+      const period = match[3].toLowerCase();
+      
+      if (period === 'pm' && hours < 12) hours += 12;
+      if (period === 'am' && hours === 12) hours = 0;
+    } else {
+      throw new Error(`Invalid time format: ${timeStr}`);
+    }
+    
+    // Set time components
+    date.setHours(hours, minutes, 0, 0);
   }
-
-  // Set time components
-  date.setHours(hours, minutes, 0, 0);
   
   return date;
 }
@@ -398,78 +539,225 @@ function formatCalendarDateTime(date, timezone) {
   };
 }
 
-// Usage in addToGoogleCalendar
+async function fetchWithRetry(url, options, maxRetries = 3) {
+  let retries = 0;
+  
+  while (retries < maxRetries) {
+    try {
+      console.log(`Attempt ${retries + 1}/${maxRetries} to fetch ${url}`);
+      
+      // If we've been given an AbortController signal, need to handle it
+      const response = await fetch(url, options);
+      
+      // Check if we hit rate limits
+      if (response.status === 429) {
+        const retryAfter = parseInt(response.headers.get('Retry-After') || '1', 10);
+        console.log(`Rate limited. Waiting ${retryAfter} seconds before retry.`);
+        await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
+        retries++;
+        continue;
+      }
+      
+      return response;
+    } catch (error) {
+      // Check if this is an abort error (timeout)
+      if (error.name === 'AbortError') {
+        console.error('Fetch operation timed out');
+        throw new Error('Request timed out. Please try again.');
+      }
+      
+      retries++;
+      console.error(`Fetch attempt ${retries} failed: ${error.message}`);
+      
+      if (retries >= maxRetries) {
+        console.error(`All ${maxRetries} retry attempts failed`);
+        throw error;
+      }
+      
+      // Wait longer between retries
+      const waitTime = 1000 * retries;
+      console.log(`Waiting ${waitTime/1000} seconds before retry...`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+  }
+  
+  // This should not be reached due to the throw in the retry loop
+  throw new Error(`Failed after ${maxRetries} attempts`);
+}
+
 async function addToGoogleCalendar(events) {
   return new Promise((resolve, reject) => {
+    // Add a timeout to ensure the promise doesn't hang indefinitely
+    const timeoutId = setTimeout(() => {
+      console.error('Calendar API operation timed out after 30 seconds');
+      chrome.notifications.create({
+        type: 'basic',
+        iconUrl: chrome.runtime.getURL('icons/icon-128.png'),
+        title: 'Calendar Operation Timeout',
+        message: 'The request to add events to your calendar timed out. Please try again.'
+      });
+      reject(new Error('Calendar API operation timed out'));
+    }, 30000); // 30 second timeout
+    
     chrome.identity.getAuthToken({ interactive: true }, async (token) => {
+      if (chrome.runtime.lastError) {
+        console.error('Auth error:', chrome.runtime.lastError);
+        clearTimeout(timeoutId);
+        
+        // Show notification to user about auth error
+        chrome.notifications.create({
+          type: 'basic',
+          iconUrl: chrome.runtime.getURL('icons/icon-128.png'),
+          title: 'Authentication Error',
+          message: 'Failed to authenticate with Google Calendar. Please try again.'
+        });
+        
+        return reject(chrome.runtime.lastError);
+      }
+      
+      if (!token) {
+        clearTimeout(timeoutId);
+        console.error('No authentication token received');
+        
+        chrome.notifications.create({
+          type: 'basic',
+          iconUrl: chrome.runtime.getURL('icons/icon-128.png'),
+          title: 'Authentication Error',
+          message: 'Failed to get authentication token. Please check your Google account settings.'
+        });
+        
+        return reject(new Error('Failed to get authentication token'));
+      }
+      
       try {
+        const results = [];
+        const errors = [];
+        
         for (const event of events) {
+          try {
+            const startDate = parseDateTime(event.Date, event.Time);
+            const endDate = new Date(startDate.getTime() + 3600000); // +1 hour
 
-          const startDate = parseDateTime(event.Date, event.Time);
-          const endDate = new Date(startDate.getTime() + 3600000); // +1 hour
+            // Summary
+            const summary = event.Event && event.Event.trim() !== "" 
+              ? event.Event 
+              : "No Name Event";
 
-          // Summary
-          const summary = event.Event && event.Event.trim() !== "" 
-          ? event.Event 
-          : "No Name Event";
-
-          const eventBody = {
-            summary: summary,
-            start: formatCalendarDateTime(startDate, event.Timezone),
-            end: formatCalendarDateTime(endDate, event.Timezone),
-            visibility: "public",
-          };
-
-          // Assumes event.Attendees is already an array of objects in the format: [{email: "example@example.com"}, ...]
-          if (event.Attendees && Array.isArray(event.Attendees) && event.Attendees.length > 0) {
-            eventBody.attendees = event.Attendees;
-          }
-
-          // Add description if it's not "None"
-          if (event.Description && event.Description !== "None") {
-            eventBody.description = event.Description;
-          }
-
-          // Add location if it's not "None"
-          if (event.Location && event.Location !== "None") {
-            eventBody.location = event.Location;
-          }
-
-          // Add reminders if both fields are provided and not "None"
-          if (event.ReminderMethod && event.ReminderMethod !== "None" &&
-              event.ReminderMinutes && event.ReminderMinutes !== "None") {
-            eventBody.reminders = {
-              useDefault: false,
-              overrides: [
-                {
-                  method: event.ReminderMethod,
-                  minutes: parseInt(event.ReminderMinutes, 10)
-                }
-              ]
+            const eventBody = {
+              summary: summary,
+              start: formatCalendarDateTime(startDate, event.Timezone),
+              end: formatCalendarDateTime(endDate, event.Timezone),
+              visibility: "public",
             };
-          }
 
-          const response = await fetch(
-            'https://www.googleapis.com/calendar/v3/calendars/primary/events',
-            {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify(eventBody)
+            // Attendees handling
+            if (event.Attendees && Array.isArray(event.Attendees) && event.Attendees.length > 0) {
+              eventBody.attendees = event.Attendees;
             }
-          );
 
-          if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error.message);
+            // Add description if it's not "None"
+            if (event.Description && event.Description !== "None") {
+              eventBody.description = event.Description;
+            }
+
+            // Add location if it's not "None"
+            if (event.Location && event.Location !== "None") {
+              eventBody.location = event.Location;
+            }
+
+            // Add reminders if both fields are provided and not "None"
+            if (event.ReminderMethod && event.ReminderMethod !== "None" &&
+                event.ReminderMinutes && event.ReminderMinutes !== "None") {
+              eventBody.reminders = {
+                useDefault: false,
+                overrides: [
+                  {
+                    method: event.ReminderMethod,
+                    minutes: parseInt(event.ReminderMinutes, 10)
+                  }
+                ]
+              };
+            }
+
+            console.log(`Sending calendar request for event: ${summary}`);
+            
+            // Set individual request timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout per event
+            
+            const response = await fetchWithRetry(
+              'https://www.googleapis.com/calendar/v3/calendars/primary/events',
+              {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(eventBody),
+                signal: controller.signal
+              }
+            );
+            
+            clearTimeout(timeoutId);
+
+            console.log(`Received response for event: ${summary}`, response.status);
+
+            const responseData = await response.json();
+            
+            if (!response.ok) {
+              throw new Error(responseData.error?.message || `API error: ${response.status}`);
+            }
+            
+            // Store successful result
+            results.push({
+              event: summary,
+              success: true,
+              data: responseData
+            });
+            
+          } catch (eventError) {
+            console.error('Error adding event:', event.Event, eventError);
+            errors.push({
+              event: event.Event || 'Unknown event',
+              error: eventError.message
+            });
           }
         }
-        console.log("Sent fetch")
-        return response;
+        
+        // Notify content script with results
+        chrome.runtime.sendMessage({ 
+          action: 'eventsAddedResults', 
+          results: results,
+          errors: errors
+        });
+        
+        // Clear the timeout since we're done
+        clearTimeout(timeoutId);
+        
+        // Resolve with summary of results
+        resolve({
+          totalEvents: events.length,
+          successfulEvents: results.length,
+          failedEvents: errors.length,
+          details: {
+            successful: results,
+            errors: errors
+          }
+        });
+        
       } catch (error) {
-        return error;
+        clearTimeout(timeoutId);
+        console.error('Overall calendar API error:', error);
+        
+        // Show notification about the error
+        chrome.notifications.create({
+          type: 'basic',
+          iconUrl: chrome.runtime.getURL('icons/icon-128.png'),
+          title: 'Calendar Error',
+          message: `Error adding events to calendar: ${error.message}`
+        });
+        
+        reject(error);
       }
     });
   });
