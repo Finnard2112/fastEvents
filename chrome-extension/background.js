@@ -167,19 +167,12 @@ chrome.notifications.onButtonClicked.addListener((notificationId, buttonIndex) =
 });
 
 
-// In your event handler
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === 'eventsConfirmed') {
-    console.log('Events confirmed by user, proceeding to add to calendar');
-    
-    // Show an initial notification that we're processing
-    chrome.notifications.create({
-      type: 'basic',
-      iconUrl: chrome.runtime.getURL('icons/icon-128.png'),
-      title: 'Processing Events',
-      message: 'Adding events to your calendar...'
-    });
-    
+// In background.js
+chrome.storage.onChanged.addListener((changes, namespace) => {
+  if (namespace === 'local' && changes.eventsConfirmed?.newValue === true) {
+    console.log('Events confirmed flag detected, timestamp:', 
+              new Date(changes.confirmationTimestamp?.newValue).toISOString());
+  
     chrome.storage.local.get(['screenshot', 'gemEvents'], (data) => {
       if (chrome.runtime.lastError) {
         console.error('Storage error:', chrome.runtime.lastError);
@@ -209,6 +202,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           const res = await addToGoogleCalendar(data.gemEvents);
           console.log('Calendar operation completed successfully:', res);
           notifyUserOfResults(res);
+
+          chrome.storage.local.set({ eventsConfirmed: false });
         } catch (error) {
           console.error('Error adding events to calendar:', error);
           // This notification is shown by addToGoogleCalendar on failure
@@ -219,13 +214,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             title: 'Calendar Error',
             message: `Failed to add events: ${error.message}`
           });
+          chrome.storage.local.set({ eventsConfirmed: false });
         }
       })();
     });
     
-    return true;
   }
 });
+
 
 // New function to process image for QuickAdd
 async function processImageForQuickAdd(base64Image) {

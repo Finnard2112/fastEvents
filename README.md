@@ -31,12 +31,10 @@ Enable the "Use QuickAdd for screenshots" toggle under the screenshot button. Th
 - Takes a screenshot of your message(s)
 - Directly extracts event details and creates an event in your calendar without the confirmation page
 - Shows a notification when your event is added
-- Generally provides more reliable event creation as it uses Google Calendar's native QuickAdd feature
 
 **When to use QuickAdd Mode:** 
 - For simple events where you don't need to add attendees, descriptions, or reminders
 - When you want the fastest way to add events to your calendar
-- For better reliability with Google Calendar's API
 
 The screenshot might take a few seconds to process. Click ESCAPE to exit screenshot mode.
 

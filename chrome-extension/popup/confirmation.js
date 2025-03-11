@@ -398,10 +398,15 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(updatedEvents)
     
         if (valid) {
-          chrome.storage.local.set({ gemEvents: updatedEvents }, () => {
-            console.log('All events updated:', updatedEvents);
-            alert('Events saved successfully!'); // Blocks until user dismisses it.
-            chrome.runtime.sendMessage({ action: 'eventsConfirmed' });
+          // Save both events and a confirmation flag in one atomic storage operation
+          chrome.storage.local.set({ 
+            gemEvents: updatedEvents,
+            eventsConfirmed: true,  // This is the trigger flag
+            confirmationTimestamp: Date.now()
+          }, () => {
+            console.log('All events updated and confirmation flag set');
+            alert('Events saved successfully!');
+            // Close window immediately - no waiting needed
             window.close();
           });
         }
